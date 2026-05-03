@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sign Up — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:      #0d0d0d;
+            --panel:   #141414;
+            --border:  #2a2a2a;
+            --accent:  #c8a96e;
+            --accent2: #e8c98e;
+            --text:    #f0ede8;
+            --muted:   #7a7470;
+            --error:   #e07070;
+            --success: #70c490;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+        }
+
+        /* ── Left panel ── */
+        .left {
+            position: relative;
+            background: linear-gradient(135deg, #1a1208 0%, #0d0d0d 60%, #12100a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
+            overflow: hidden;
+        }
+
+        .left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(200,169,110,0.12) 0%, transparent 70%),
+                    radial-gradient(ellipse 40% 40% at 80% 20%, rgba(200,169,110,0.06) 0%, transparent 60%);
+        }
+
+        .brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+        }
+        .brand span { color: var(--text); }
+
+        .steps {
+            z-index: 1;
+        }
+
+        .steps h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-text strong {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+        .step-text p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 300;
+        }
+
+        .tagline {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .decoration {
+            position: absolute;
+            bottom: -60px; right: -60px;
+            width: 300px; height: 300px;
+            border: 1px solid rgba(200,169,110,0.15);
+            border-radius: 50%;
+        }
+        .decoration::before {
+            content: ''; position: absolute; inset: 30px;
+            border: 1px solid rgba(200,169,110,0.1); border-radius: 50%;
+        }
+
+        /* ── Right panel ── */
+        .right {
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 420px;
+            padding: 1rem 0;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-box h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-box .subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-box .subtitle a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .field { margin-bottom: 1.2rem; }
+
+        .field label {
+            display: block;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .field input {
+            width: 100%;
+            background: #1c1c1c;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
+        }
+
+        .field input::placeholder { color: #3a3a3a; }
+
+        .field .hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.35rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #0d0d0d;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 0.5rem;
+        }
+
+        .btn:hover  { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1.2rem;
+            display: none;
+        }
+        .alert.error   { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); color: var(--error); }
+        .alert.success { background: rgba(112,196,144,0.1); border: 1px solid rgba(112,196,144,0.3); color: var(--success); }
+        .alert.show    { display: block; }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 1fr; }
+            .left { display: none; }
+            .row  { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Left panel -->
+<div class="left">
+    <div class="brand">Shop<span>Ease</span></div>
+    <div class="steps">
+        <h2>Start your journey with us.</h2>
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                <strong>Create your account</strong>
+                <p>Fill in your details to get started in seconds.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                <strong>Browse our catalog</strong>
+                <p>Thousands of products at competitive prices.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                <strong>Fast & secure checkout</strong>
+                <p>Multiple payment options and safe delivery.</p>
+            </div>
+        </div>
+    </div>
+    <div class="tagline">Premium E-Commerce Experience</div>
+    <div class="decoration"></div>
+</div>
+
+<!-- Right form -->
+<div class="right">
+    <div class="form-box">
+        <h2>Create Account</h2>
+        <p class="subtitle">Already have one? <a href="login.html">Sign in →</a></p>
+
+        <div class="alert error"   id="errorMsg"></div>
+        <div class="alert success" id="successMsg"></div>
+
+        <div class="row">
+            <div class="field">
+                <label>First Name</label>
+                <input type="text" id="firstName" placeholder="John"/>
+            </div>
+            <div class="field">
+                <label>Last Name</label>
+                <input type="text" id="lastName" placeholder="Doe"/>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="johndoe"/>
+        </div>
+
+        <div class="field">
+            <label>Email Address</label>
+            <input type="email" id="email" placeholder="john@example.com"/>
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••"/>
+            <p class="hint">Minimum 8 characters</p>
+        </div>
+
+        <div class="field">
+            <label>Phone Number <span style="color:var(--muted); font-size:0.7rem;">(optional)</span></label>
+            <input type="tel" id="phone" placeholder="+212600000000"/>
+        </div>
+
+        <button class="btn" id="signupBtn" onclick="handleSignup()">Create Account</button>
+
+        <p style="text-align:center; color:var(--muted); font-size:0.82rem; margin-top:1.2rem;">
+            By signing up you agree to our
+            <a href="#" style="color:var(--accent); text-decoration:none;">Terms of Service</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    async function handleSignup() {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName  = document.getElementById('lastName').value.trim();
+        const username  = document.getElementById('username').value.trim();
+        const email     = document.getElementById('email').value.trim();
+        const password  = document.getElementById('password').value;
+        const phone     = document.getElementById('phone').value.trim();
+        const btn       = document.getElementById('signupBtn');
+
+        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('successMsg').classList.remove('show');
+
+        // Validation
+        if (!firstName || !lastName || !username || !email || !password) {
+            showError('Please fill in all required fields.'); return;
+        }
+        if (password.length < 8) {
+            showError('Password must be at least 8 characters.'); return;
+        }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+            showError('Please enter a valid email address.'); return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Creating account…';
+
+        const body = { firstName, lastName, username, email, password };
+        if (phone) body.phoneNumber = phone;
+
+        try {
+            const res = await fetch('http://localhost:8080/ecommerce/api/auth/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                const s = document.getElementById('successMsg');
+                s.textContent = `Account created! Welcome, ${data.user.firstName}. Redirecting…`;
+                s.classList.add('show');
+
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+            } else {
+                showError(data.error || 'Something went wrong. Please try again.');
+            }
+
+        } catch (err) {
+            showError('Could not connect to the server. Make sure Tomcat is running.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.classList.add('show');
+    }
+</script>
+</body>
+</html>

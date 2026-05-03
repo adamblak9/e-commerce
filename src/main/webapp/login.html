@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0d0d0d;
+            --panel:     #141414;
+            --border:    #2a2a2a;
+            --accent:    #c8a96e;
+            --accent2:   #e8c98e;
+            --text:      #f0ede8;
+            --muted:     #7a7470;
+            --error:     #e07070;
+            --success:   #70c490;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* ── Left panel ── */
+        .left {
+            position: relative;
+            background: linear-gradient(135deg, #1a1208 0%, #0d0d0d 60%, #12100a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
+            overflow: hidden;
+        }
+
+        .left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(200,169,110,0.12) 0%, transparent 70%),
+                    radial-gradient(ellipse 40% 40% at 80% 20%, rgba(200,169,110,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+        }
+
+        .brand span { color: var(--text); }
+
+        .left-content { z-index: 1; }
+
+        .left-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.4rem, 4vw, 3.5rem);
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .left-content p {
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 340px;
+        }
+
+        .decoration {
+            position: absolute;
+            bottom: -60px;
+            right: -60px;
+            width: 300px;
+            height: 300px;
+            border: 1px solid rgba(200,169,110,0.15);
+            border-radius: 50%;
+        }
+        .decoration::before {
+            content: '';
+            position: absolute;
+            inset: 30px;
+            border: 1px solid rgba(200,169,110,0.1);
+            border-radius: 50%;
+        }
+        .decoration::after {
+            content: '';
+            position: absolute;
+            inset: 60px;
+            border: 1px solid rgba(200,169,110,0.07);
+            border-radius: 50%;
+        }
+
+        .tagline {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* ── Right panel ── */
+        .right {
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            border-left: 1px solid var(--border);
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 400px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-box h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-box .subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-box .subtitle a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .form-box .subtitle a:hover { text-decoration: underline; }
+
+        .field {
+            margin-bottom: 1.4rem;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .field input {
+            width: 100%;
+            background: #1c1c1c;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
+        }
+
+        .field input::placeholder { color: #3a3a3a; }
+
+        .btn {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #0d0d0d;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 0.5rem;
+        }
+
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1.2rem;
+            display: none;
+        }
+        .alert.error   { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); color: var(--error); }
+        .alert.success { background: rgba(112,196,144,0.1); border: 1px solid rgba(112,196,144,0.3); color: var(--success); }
+        .alert.show    { display: block; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 1fr; }
+            .left { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Left decorative panel -->
+<div class="left">
+    <div class="brand">Shop<span>Ease</span></div>
+    <div class="left-content">
+        <h1>Welcome back to the store.</h1>
+        <p>Log in to your account to continue shopping, track your orders, and manage your profile.</p>
+    </div>
+    <div class="tagline">Premium E-Commerce Experience</div>
+    <div class="decoration"></div>
+</div>
+
+<!-- Right login form -->
+<div class="right">
+    <div class="form-box">
+        <h2>Sign In</h2>
+        <p class="subtitle">No account? <a href="signup.html">Create one →</a></p>
+
+        <div class="alert error" id="errorMsg"></div>
+        <div class="alert success" id="successMsg"></div>
+
+        <div class="field">
+            <label>Email Address</label>
+            <input type="email" id="email" placeholder="john@example.com" autocomplete="email"/>
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+
+        <button class="btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
+
+        <div class="divider">or</div>
+        <p style="text-align:center; color: var(--muted); font-size:0.85rem;">
+            New here? <a href="signup.html" style="color:var(--accent); text-decoration:none;">Create an account</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    async function handleLogin() {
+        const email    = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btn      = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+
+        // Hide previous alerts
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        // Basic validation
+        if (!email || !password) {
+            showError('Please fill in all fields.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Signing in…';
+
+        try {
+            const res = await fetch('http://localhost:8080/ecommerce/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // Save token and user to localStorage
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                successMsg.textContent = `Welcome back, ${data.user.firstName}! Redirecting…`;
+                successMsg.classList.add('show');
+
+                // Redirect after short delay
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+            } else {
+                showError(data.error || 'Invalid email or password.');
+            }
+
+        } catch (err) {
+            showError('Could not connect to the server. Make sure Tomcat is running.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.classList.add('show');
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleLogin();
+    });
+</script>
+</body>
+</html>
