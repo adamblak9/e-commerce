@@ -761,7 +761,7 @@
     }
 
     try {
-      const res  = await fetch('/payment', { method: 'POST', body });
+      const res  = await fetch('payment', { method: 'POST', body });
       const data = await res.json();
 
       if (data.success) {

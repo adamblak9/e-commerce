@@ -34,15 +34,25 @@ public class PaymentServlet extends BaseServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
+        // ─── Auth via JWT (Bearer token in Authorization header) ───────────────
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            writeJson(resp, error("Non authentifié. Veuillez vous connecter."));
+            writeJson(resp, error("Non authentifié. Fournissez un token Bearer."));
+            return;
+        }
+        Long userId;
+        try {
+            com.auth0.jwt.interfaces.DecodedJWT jwt =
+                    com.ecommerce.util.JwtUtil.verify(authHeader.substring(7));
+            userId = jwt.getClaim("userId").asLong();
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            writeJson(resp, error("Token invalide ou expiré."));
             return;
         }
 
-        Long userId = (Long) session.getAttribute("userId");
-
+        // ... rest of your existing doPost code (keep it exactly as-is, just remove the session block)
         try {
             String method = req.getParameter("paymentMethod");
             String orderIdStr = req.getParameter("orderId");
