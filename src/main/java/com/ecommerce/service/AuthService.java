@@ -19,7 +19,8 @@ public class AuthService {
 
     public Map<String, Object> signup(String username, String email,
                                       String password, String firstName,
-                                      String lastName, String phoneNumber) {
+                                      String lastName, String phoneNumber,
+                                      String role) {
 
         EntityManager em = JPAUtil.getEntityManager();
         UserRepository repo = new UserRepository(em);
@@ -40,6 +41,13 @@ public class AuthService {
                     firstName, lastName
             );
             user.setPhoneNumber(phoneNumber);
+
+            // Set role — only CUSTOMER or SELLER allowed via self-registration
+            try {
+                user.setRole(User.Role.valueOf(role));
+            } catch (Exception e) {
+                user.setRole(User.Role.CUSTOMER); // fallback
+            }
 
             repo.save(user);
             em.getTransaction().commit();
@@ -94,7 +102,7 @@ public class AuthService {
     }
 
     // -------------------------------------------------------------------------
-    // Helper — builds the JSON-ready response map
+    // Helper
     // -------------------------------------------------------------------------
 
     private Map<String, Object> buildResponse(String token, User user) {

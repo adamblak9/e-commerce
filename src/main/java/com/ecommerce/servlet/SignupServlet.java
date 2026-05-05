@@ -18,13 +18,15 @@ public class SignupServlet extends BaseServlet {
 
         Map<String, String> body = readBody(req);
 
-        // ── Basic presence validation ────────────────────────────────────────
         String username  = body.get("username");
         String email     = body.get("email");
         String password  = body.get("password");
         String firstName = body.get("firstName");
         String lastName  = body.get("lastName");
         String phone     = body.get("phoneNumber"); // optional
+
+        // role is optional — defaults to CUSTOMER if not provided or invalid
+        String role = resolveRole(body.get("role"));
 
         if (isBlank(username) || isBlank(email) || isBlank(password)
                 || isBlank(firstName) || isBlank(lastName)) {
@@ -42,19 +44,25 @@ public class SignupServlet extends BaseServlet {
             return;
         }
 
-        // ── Delegate to service ──────────────────────────────────────────────
         try {
             Map<String, Object> response = authService.signup(
-                    username, email, password, firstName, lastName, phone);
+                    username, email, password, firstName, lastName, phone, role);
             sendJson(res, 201, response);
 
         } catch (IllegalArgumentException e) {
-            // duplicate email or username
             sendError(res, 409, e.getMessage());
-
         } catch (Exception e) {
             sendError(res, 500, "An unexpected error occurred");
         }
+    }
+
+    /**
+     * Only CUSTOMER and SELLER are allowed via self-registration.
+     * ADMIN accounts can only be created manually in the database.
+     */
+    private String resolveRole(String raw) {
+        if ("SELLER".equalsIgnoreCase(raw)) return "SELLER";
+        return "CUSTOMER"; // default
     }
 
     private boolean isBlank(String s) {
