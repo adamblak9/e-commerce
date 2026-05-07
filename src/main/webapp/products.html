@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="auth.js"></script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Products — ShopEase</title>
@@ -691,6 +692,17 @@
     const API = 'http://localhost:8080/ecommerce/api/products';
     const token = localStorage.getItem('token');
     const user  = JSON.parse(localStorage.getItem('user') || '{}');
+
+    // ── ROLE GUARD ────────────────────────────────────────────────────────────
+    // This page is for product management — ADMIN and SELLER only.
+    // CUSTOMER (or unauthenticated) users are redirected immediately.
+    (function RoleGuard() {
+        const allowedRoles = ['ADMIN', 'SELLER'];
+        if (!token || !user.role || !allowedRoles.includes(user.role)) {
+            window.location.replace('403.html');
+        }
+    })();
+    // ─────────────────────────────────────────────────────────────────────────
 
     let allProducts  = [];
     let editingId    = null;
