@@ -13,10 +13,13 @@ import java.io.IOException;
 @WebFilter("/api/*")  // intercepts every request to /api/...
 public class JwtFilter implements Filter {
 
-    // These routes are public — no token needed
     private static final String[] PUBLIC_ROUTES = {
             "/api/auth/login",
             "/api/auth/signup"
+    };
+
+    private static final String[] PUBLIC_PREFIXES = {
+            "/api/products"
     };
 
     @Override
@@ -41,8 +44,17 @@ public class JwtFilter implements Filter {
         String path = req.getServletPath();
         for (String pub : PUBLIC_ROUTES) {
             if (path.equals(pub)) {
-                chain.doFilter(request, response); // skip auth check
+                chain.doFilter(request, response);
                 return;
+            }
+        }
+// Allow GET requests to /api/products publicly
+        if ("GET".equalsIgnoreCase(req.getMethod())) {
+            for (String prefix : PUBLIC_PREFIXES) {
+                if (path.startsWith(prefix)) {
+                    chain.doFilter(request, response);
+                    return;
+                }
             }
         }
 

@@ -6,6 +6,7 @@
 
         <!-- Register all entities here -->
         <class>com.ecommerce.entity.User</class>
+        <class>com.ecommerce.entity.Product</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.url"
