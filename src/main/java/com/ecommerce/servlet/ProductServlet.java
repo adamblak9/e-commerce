@@ -1,9 +1,9 @@
 package com.ecommerce.servlet;
 
 import com.ecommerce.service.ProductService;
-import com.ecommerce.util.JwtUtil;
+
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -212,38 +212,21 @@ public class ProductServlet extends BaseServlet {
      * Returns null and sends 401 if token is missing/invalid.
      */
     private Map<String, String> extractClaims(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String token = null;
+        // JwtFilter already verified the token upstream and set these attributes.
+        // Do NOT re-verify — just read the attributes.
+        Object userId = req.getAttribute("userId");
+        Object role   = req.getAttribute("role");
+        Object email  = req.getAttribute("email");
 
-        // 1. Try Authorization header
-        String authHeader = req.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        }
-
-        // 2. Fallback to cookie
-        if (token == null && req.getCookies() != null) {
-            for (Cookie cookie : req.getCookies()) {
-                if ("jwt".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (token == null) {
+        if (userId == null || role == null) {
             sendError(res, 401, "Authentication required");
             return null;
         }
 
-        try {
-            com.auth0.jwt.interfaces.DecodedJWT jwt = JwtUtil.verify(token);
-            Map<String, String> claims = new java.util.HashMap<>();
-            claims.put("userId", String.valueOf(jwt.getClaim("userId").asLong()));
-            claims.put("role",   jwt.getClaim("role").asString());
-            claims.put("email",  jwt.getSubject());
-            return claims;
-        } catch (Exception e) {
-            sendError(res, 401, "Invalid or expired token");
-            return null;
-        }
-    }}
+        Map<String, String> claims = new java.util.HashMap<>();
+        claims.put("userId", String.valueOf(userId));
+        claims.put("role",   String.valueOf(role));
+        claims.put("email",  email != null ? String.valueOf(email) : "");
+        return claims;
+    }
+}

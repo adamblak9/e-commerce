@@ -43,7 +43,7 @@ public class LoginServlet extends BaseServlet {
             res.addCookie(jwtCookie);
 
             // ❌ Do NOT expose token to frontend anymore
-            response.remove("token");
+            //response.remove("token");
 
             sendJson(res, 200, response);
 
