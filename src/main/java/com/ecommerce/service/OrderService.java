@@ -16,24 +16,17 @@ public class OrderService {
 
     private final OrderRepository orderRepository = new OrderRepository();
 
-    /**
-     * Creates a new Order and its associated items in the database.
-     * Used by OrderServlet when the user clicks "Checkout" in cart.html.
-     */
     public Order createOrder(Long userId, List<Map<String, Object>> cartItems, BigDecimal total, String address) {
-        // 1. Prepare the Order entity
         Order order = new Order();
         order.setUserId(userId);
         order.setTotalAmount(total);
         order.setShippingAddress(address);
         order.setStatus(Order.OrderStatus.PENDING); // Initial status
 
-        // 2. Prepare the list of OrderItem entities
         List<OrderItem> items = new ArrayList<>();
         for (Map<String, Object> itemMap : cartItems) {
             OrderItem item = new OrderItem();
 
-            // Extract IDs and values safely from the Map
             Long productId = Long.valueOf(itemMap.get("productId").toString());
             Integer quantity = Integer.valueOf(itemMap.get("quantity").toString());
             BigDecimal price = new BigDecimal(itemMap.get("price").toString());
@@ -45,14 +38,9 @@ public class OrderService {
             items.add(item);
         }
 
-        // 3. Save everything to BDD via the Repository
         return orderRepository.save(order, items);
     }
 
-    /**
-     * Fetches an order by its ID.
-     * Used by OrderDetailsServlet to show info on the Payment page.
-     */
     public Order getOrderById(Long id) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -62,10 +50,7 @@ public class OrderService {
         }
     }
 
-    /**
-     * Fetches all items belonging to a specific order.
-     * Used by OrderDetailsServlet to show the product list on the Payment page.
-     */
+
     public List<OrderItem> getOrderItems(Long orderId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -77,10 +62,7 @@ public class OrderService {
         }
     }
 
-    /**
-     * Updates the status of an order (e.g., from PENDING to CONFIRMED).
-     * Used by PaymentServlet after a successful transaction.
-     */
+
     public void updateOrderStatus(Long orderId, Order.OrderStatus status) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
