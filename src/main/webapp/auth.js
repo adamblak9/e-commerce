@@ -34,6 +34,7 @@ const Auth = (() => {
         'signup.html'    : 'guest',
         // index.html   → public, remove it
         'dashboard.html' : 'auth',
+        'profile.html'   : 'auth',
         'payment.html'   : 'auth',
         'products.html'  : ['ADMIN', 'SELLER'],
         'product.html'   : 'auth',

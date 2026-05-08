@@ -18,6 +18,10 @@ public class UserRepository {
         em.persist(user);
     }
 
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(em.find(User.class, id));
+    }
+
     public Optional<User> findByEmail(String email) {
         try {
             User user = em.createQuery(
@@ -38,10 +42,28 @@ public class UserRepository {
         return count > 0;
     }
 
+    public boolean existsByEmailAndIdNot(String email, Long id) {
+        Long count = em.createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE u.email = :email AND u.id <> :id", Long.class)
+                .setParameter("email", email)
+                .setParameter("id", id)
+                .getSingleResult();
+        return count > 0;
+    }
+
     public boolean existsByUsername(String username) {
         Long count = em.createQuery(
                         "SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
                 .setParameter("username", username)
+                .getSingleResult();
+        return count > 0;
+    }
+
+    public boolean existsByUsernameAndIdNot(String username, Long id) {
+        Long count = em.createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE u.username = :username AND u.id <> :id", Long.class)
+                .setParameter("username", username)
+                .setParameter("id", id)
                 .getSingleResult();
         return count > 0;
     }
