@@ -30,7 +30,7 @@ const Auth = (() => {
     // ['ADMIN',...]  → must be logged in AND have one of these roles
     // (omitted)      → public, no check
     const ROUTE_MAP = {
-        'login.html'     : 'guest',
+        //'login.html'     : 'guest',
         'signup.html'    : 'guest',
         // index.html   → public, remove it
         'dashboard.html' : 'auth',

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="auth.js"></script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Sign Up — ShopEase</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,9 +18,8 @@
             --muted:   #7a7470;
             --error:   #e07070;
             --success: #70c490;
+            --seller:  #7eb8d4;
         }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             min-height: 100vh;
@@ -35,21 +33,40 @@
         /* ── Left panel ── */
         .left {
             position: relative;
-            background: linear-gradient(135deg, #1a1208 0%, #0d0d0d 60%, #12100a 100%);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 3rem;
             overflow: hidden;
+            transition: background 0.5s;
+        }
+
+        .left.customer-mode {
+            background: linear-gradient(135deg, #1a1208 0%, #0d0d0d 60%, #12100a 100%);
+        }
+
+        .left.seller-mode {
+            background: linear-gradient(135deg, #081218 0%, #0d0d0d 60%, #0a1012 100%);
         }
 
         .left::before {
             content: '';
             position: absolute;
             inset: 0;
+            pointer-events: none;
+            transition: background 0.5s;
+        }
+
+        .left.customer-mode::before {
             background:
                     radial-gradient(ellipse 60% 50% at 20% 80%, rgba(200,169,110,0.12) 0%, transparent 70%),
                     radial-gradient(ellipse 40% 40% at 80% 20%, rgba(200,169,110,0.06) 0%, transparent 60%);
+        }
+
+        .left.seller-mode::before {
+            background:
+                    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(126,184,212,0.12) 0%, transparent 70%),
+                    radial-gradient(ellipse 40% 40% at 80% 20%, rgba(126,184,212,0.06) 0%, transparent 60%);
         }
 
         .brand {
@@ -57,19 +74,29 @@
             font-size: 1.6rem;
             letter-spacing: 0.05em;
             color: var(--accent);
+            z-index: 1;
         }
         .brand span { color: var(--text); }
 
-        .steps {
-            z-index: 1;
-        }
+        .left-content { z-index: 1; }
 
-        .steps h2 {
+        .left-content h2 {
             font-family: 'Playfair Display', serif;
             font-size: clamp(1.8rem, 3vw, 2.6rem);
             line-height: 1.2;
             margin-bottom: 2rem;
+            transition: color 0.4s;
+        }
+
+        .left.customer-mode .left-content h2 {
             background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .left.seller-mode .left-content h2 {
+            background: linear-gradient(135deg, var(--text) 0%, var(--seller) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -80,14 +107,21 @@
             align-items: flex-start;
             gap: 1rem;
             margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            animation: slideIn 0.4s ease forwards;
+        }
+        .step-item:nth-child(2) { animation-delay: 0.05s; }
+        .step-item:nth-child(3) { animation-delay: 0.10s; }
+        .step-item:nth-child(4) { animation-delay: 0.15s; }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .step-num {
-            width: 28px;
-            height: 28px;
+            width: 28px; height: 28px;
             border-radius: 50%;
-            border: 1px solid var(--accent);
-            color: var(--accent);
             font-size: 0.75rem;
             font-weight: 600;
             display: flex;
@@ -95,36 +129,27 @@
             justify-content: center;
             flex-shrink: 0;
             margin-top: 2px;
+            transition: border-color 0.4s, color 0.4s;
         }
 
-        .step-text strong {
-            display: block;
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
+        .left.customer-mode .step-num {
+            border: 1px solid var(--accent);
+            color: var(--accent);
         }
-        .step-text p {
-            font-size: 0.82rem;
-            color: var(--muted);
-            font-weight: 300;
+        .left.seller-mode .step-num {
+            border: 1px solid var(--seller);
+            color: var(--seller);
         }
+
+        .step-text strong { display: block; font-size: 0.9rem; margin-bottom: 0.2rem; }
+        .step-text p { font-size: 0.82rem; color: var(--muted); font-weight: 300; }
 
         .tagline {
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
             color: var(--muted);
-        }
-
-        .decoration {
-            position: absolute;
-            bottom: -60px; right: -60px;
-            width: 300px; height: 300px;
-            border: 1px solid rgba(200,169,110,0.15);
-            border-radius: 50%;
-        }
-        .decoration::before {
-            content: ''; position: absolute; inset: 30px;
-            border: 1px solid rgba(200,169,110,0.1); border-radius: 50%;
+            z-index: 1;
         }
 
         /* ── Right panel ── */
@@ -142,11 +167,11 @@
             width: 100%;
             max-width: 420px;
             padding: 1rem 0;
-            animation: fadeUp 0.6s ease both;
+            animation: fadeUp 0.5s ease both;
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
+            from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
@@ -159,20 +184,53 @@
         .form-box .subtitle {
             color: var(--muted);
             font-size: 0.9rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
         }
+        .form-box .subtitle a { color: var(--accent); text-decoration: none; font-weight: 500; }
 
-        .form-box .subtitle a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .row {
+        /* ── Role toggle ── */
+        .role-toggle {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            background: #1c1c1c;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 2rem;
+            gap: 4px;
         }
+
+        .role-btn {
+            padding: 0.7rem 1rem;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .role-btn.active-customer {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #0d0d0d;
+        }
+
+        .role-btn.active-seller {
+            background: linear-gradient(135deg, #5a9ab8, var(--seller));
+            color: #0d0d0d;
+        }
+
+        .role-icon { font-size: 1rem; }
+
+        /* ── Fields ── */
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
         .field { margin-bottom: 1.2rem; }
 
@@ -194,8 +252,8 @@
             color: var(--text);
             font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .field input:focus {
@@ -203,34 +261,38 @@
             box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
         }
 
-        .field input::placeholder { color: #3a3a3a; }
-
-        .field .hint {
-            font-size: 0.75rem;
-            color: var(--muted);
-            margin-top: 0.35rem;
+        body.seller-active .field input:focus {
+            border-color: var(--seller);
+            box-shadow: 0 0 0 3px rgba(126,184,212,0.1);
         }
 
+        .field input::placeholder { color: #3a3a3a; }
+        .field .hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+
+        /* ── Submit button ── */
         .btn {
             width: 100%;
             padding: 0.95rem;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-            color: #0d0d0d;
+            border: none;
+            border-radius: 8px;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
             font-weight: 600;
-            border: none;
-            border-radius: 8px;
             cursor: pointer;
             letter-spacing: 0.03em;
             transition: opacity 0.2s, transform 0.15s;
             margin-top: 0.5rem;
+            color: #0d0d0d;
         }
 
-        .btn:hover  { opacity: 0.9; transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
+        .btn-customer { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); }
+        .btn-seller   { background: linear-gradient(135deg, #5a9ab8 0%, var(--seller) 100%); }
+
+        .btn:hover    { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active   { transform: translateY(0); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+        /* ── Alerts ── */
         .alert {
             padding: 0.8rem 1rem;
             border-radius: 8px;
@@ -242,6 +304,21 @@
         .alert.success { background: rgba(112,196,144,0.1); border: 1px solid rgba(112,196,144,0.3); color: var(--success); }
         .alert.show    { display: block; }
 
+        /* ── Role badge shown under toggle ── */
+        .role-info {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            padding: 0.6rem 0.9rem;
+            background: #1c1c1c;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            transition: border-color 0.3s;
+            line-height: 1.6;
+        }
+
+        body.seller-active .role-info { border-color: var(--seller); }
+
         @media (max-width: 768px) {
             body { grid-template-columns: 1fr; }
             .left { display: none; }
@@ -252,34 +329,12 @@
 <body>
 
 <!-- Left panel -->
-<div class="left">
+<div class="left customer-mode" id="leftPanel">
     <div class="brand">Shop<span>Ease</span></div>
-    <div class="steps">
-        <h2>Start your journey with us.</h2>
-        <div class="step-item">
-            <div class="step-num">1</div>
-            <div class="step-text">
-                <strong>Create your account</strong>
-                <p>Fill in your details to get started in seconds.</p>
-            </div>
-        </div>
-        <div class="step-item">
-            <div class="step-num">2</div>
-            <div class="step-text">
-                <strong>Browse our catalog</strong>
-                <p>Thousands of products at competitive prices.</p>
-            </div>
-        </div>
-        <div class="step-item">
-            <div class="step-num">3</div>
-            <div class="step-text">
-                <strong>Fast & secure checkout</strong>
-                <p>Multiple payment options and safe delivery.</p>
-            </div>
-        </div>
+    <div class="left-content" id="leftContent">
+        <!-- filled by JS -->
     </div>
     <div class="tagline">Premium E-Commerce Experience</div>
-    <div class="decoration"></div>
 </div>
 
 <!-- Right form -->
@@ -287,6 +342,20 @@
     <div class="form-box">
         <h2>Create Account</h2>
         <p class="subtitle">Already have one? <a href="login.html">Sign in →</a></p>
+
+        <!-- Role toggle -->
+        <div class="role-toggle">
+            <button class="role-btn active-customer" id="btnCustomer" onclick="setRole('CUSTOMER')">
+                <span class="role-icon">🛍️</span> Customer
+            </button>
+            <button class="role-btn" id="btnSeller" onclick="setRole('SELLER')">
+                <span class="role-icon">🏪</span> Seller
+            </button>
+        </div>
+
+        <div class="role-info" id="roleInfo">
+            Sign up as a <strong>Customer</strong> to browse, buy, and track your orders.
+        </div>
 
         <div class="alert error"   id="errorMsg"></div>
         <div class="alert success" id="successMsg"></div>
@@ -319,20 +388,99 @@
         </div>
 
         <div class="field">
-            <label>Phone Number <span style="color:var(--muted); font-size:0.7rem;">(optional)</span></label>
+            <label>Phone <span style="color:var(--muted);font-size:0.7rem;">(optional)</span></label>
             <input type="tel" id="phone" placeholder="+212600000000"/>
         </div>
 
-        <button class="btn" id="signupBtn" onclick="handleSignup()">Create Account</button>
+        <button class="btn btn-customer" id="submitBtn" onclick="handleSignup()">
+            Create Customer Account
+        </button>
 
-        <p style="text-align:center; color:var(--muted); font-size:0.82rem; margin-top:1.2rem;">
+        <p style="text-align:center;color:var(--muted);font-size:0.82rem;margin-top:1.2rem;">
             By signing up you agree to our
-            <a href="#" style="color:var(--accent); text-decoration:none;">Terms of Service</a>
+            <a href="#" style="color:var(--accent);text-decoration:none;">Terms of Service</a>
         </p>
     </div>
 </div>
 
 <script>
+    // ── State ────────────────────────────────────────────────────────────────
+    let currentRole = 'CUSTOMER';
+
+    const leftContent = {
+        CUSTOMER: {
+            title: 'Start your journey with us.',
+            steps: [
+                { n:1, title:'Create your account',    desc:'Fill in your details to get started in seconds.' },
+                { n:2, title:'Browse our catalog',      desc:'Thousands of products at competitive prices.' },
+                { n:3, title:'Fast & secure checkout',  desc:'Multiple payment options and safe delivery.' },
+            ]
+        },
+        SELLER: {
+            title: 'Start selling to thousands of customers.',
+            steps: [
+                { n:1, title:'Create your seller account', desc:'Set up your profile in seconds.' },
+                { n:2, title:'List your products',          desc:'Add your inventory with photos and pricing.' },
+                { n:3, title:'Receive orders & get paid',   desc:'Manage orders and receive payouts easily.' },
+            ]
+        }
+    };
+
+    function setRole(role) {
+        currentRole = role;
+        const isCustomer = role === 'CUSTOMER';
+        const leftPanel = document.getElementById('leftPanel');
+        const btnC = document.getElementById('btnCustomer');
+        const btnS = document.getElementById('btnSeller');
+        const info = document.getElementById('roleInfo');
+        const btn  = document.getElementById('submitBtn');
+
+        // Toggle buttons
+        btnC.className = 'role-btn' + (isCustomer ? ' active-customer' : '');
+        btnS.className = 'role-btn' + (!isCustomer ? ' active-seller'  : '');
+
+        // Left panel theme
+        leftPanel.className = 'left ' + (isCustomer ? 'customer-mode' : 'seller-mode');
+
+        // Body class for input focus colour
+        document.body.classList.toggle('seller-active', !isCustomer);
+
+        // Info text
+        if (isCustomer) {
+            info.innerHTML = 'Sign up as a <strong>Customer</strong> to browse, buy, and track your orders.';
+            info.style.borderColor = 'var(--accent)';
+        } else {
+            info.innerHTML = 'Sign up as a <strong>Seller</strong> to list products and reach thousands of customers.';
+            info.style.borderColor = 'var(--seller)';
+        }
+
+        // Submit button
+        btn.className = 'btn ' + (isCustomer ? 'btn-customer' : 'btn-seller');
+        btn.textContent = isCustomer ? 'Create Customer Account' : 'Create Seller Account';
+
+        // Left panel content
+        renderLeftContent(role);
+    }
+
+    function renderLeftContent(role) {
+        const data = leftContent[role];
+        const stepsHtml = data.steps.map(s => `
+        <div class="step-item">
+          <div class="step-num">${s.n}</div>
+          <div class="step-text">
+            <strong>${s.title}</strong>
+            <p>${s.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+        document.getElementById('leftContent').innerHTML = `
+        <h2>${data.title}</h2>
+        ${stepsHtml}
+      `;
+    }
+
+    // ── Signup handler ───────────────────────────────────────────────────────
     async function handleSignup() {
         const firstName = document.getElementById('firstName').value.trim();
         const lastName  = document.getElementById('lastName').value.trim();
@@ -340,12 +488,11 @@
         const email     = document.getElementById('email').value.trim();
         const password  = document.getElementById('password').value;
         const phone     = document.getElementById('phone').value.trim();
-        const btn       = document.getElementById('signupBtn');
+        const btn       = document.getElementById('submitBtn');
 
         document.getElementById('errorMsg').classList.remove('show');
         document.getElementById('successMsg').classList.remove('show');
 
-        // Validation
         if (!firstName || !lastName || !username || !email || !password) {
             showError('Please fill in all required fields.'); return;
         }
@@ -359,7 +506,7 @@
         btn.disabled = true;
         btn.textContent = 'Creating account…';
 
-        const body = { firstName, lastName, username, email, password };
+        const body = { firstName, lastName, username, email, password, role: currentRole };
         if (phone) body.phoneNumber = phone;
 
         try {
@@ -373,13 +520,14 @@
 
             if (res.ok) {
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('user',  JSON.stringify(data.user));
 
                 const s = document.getElementById('successMsg');
-                s.textContent = `Account created! Welcome, ${data.user.firstName}. Redirecting…`;
+                const dest = data.user.role === 'SELLER' ? 'seller-dashboard.html' : 'dashboard.html';
+                s.textContent = `Welcome, ${data.user.firstName}! Redirecting…`;
                 s.classList.add('show');
 
-                setTimeout(() => { window.location.href = 'dashbord.html'; }, 1500);
+                setTimeout(() => { window.location.href = dest; }, 1300);
             } else {
                 showError(data.error || 'Something went wrong. Please try again.');
             }
@@ -388,7 +536,9 @@
             showError('Could not connect to the server. Make sure Tomcat is running.');
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Create Account';
+            btn.textContent = currentRole === 'CUSTOMER'
+                ? 'Create Customer Account'
+                : 'Create Seller Account';
         }
     }
 
@@ -397,6 +547,9 @@
         el.textContent = msg;
         el.classList.add('show');
     }
+
+    // Init left panel
+    renderLeftContent('CUSTOMER');
 </script>
 </body>
 </html>
