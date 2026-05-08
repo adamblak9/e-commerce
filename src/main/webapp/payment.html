@@ -502,38 +502,14 @@
 <div class="checkout-wrapper">
 
   <!-- ─── Order Summary ─── -->
-  <div class="order-summary">
-    <p class="section-label">Récapitulatif de commande</p>
-
-    <div class="order-item">
-      <div>
-        <div class="name">Produit Exemple A</div>
-        <div class="qty">Qté: 2</div>
-      </div>
-      <div class="price">59,90 €</div>
+  <div class="order-summary" id="dynamicSummary">
+    <p class="section-label">Order Summary #<span id="orderIdLabel">...</span></p>
+    <div id="itemList">
+      <p>Loading items...</p>
     </div>
-    <div class="order-item">
-      <div>
-        <div class="name">Produit Exemple B</div>
-        <div class="qty">Qté: 1</div>
-      </div>
-      <div class="price">34,99 €</div>
-    </div>
-    <div class="order-item">
-      <div><div class="name">Frais de livraison</div></div>
-      <div class="price" style="color:var(--accent2)">Gratuit</div>
-    </div>
-
     <div class="order-total">
       <span class="label">Total</span>
-      <span class="amount" id="displayAmount">94,89 €</span>
-    </div>
-
-    <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
-      <p class="section-label">Adresse de livraison</p>
-      <p style="font-size:13px; color:var(--muted); line-height:1.7;">
-        12 Rue des Fleurs<br>75008 Paris, France
-      </p>
+      <span class="amount" id="displayAmount">$0.00</span>
     </div>
   </div>
 

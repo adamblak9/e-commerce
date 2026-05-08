@@ -1,21 +1,15 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.entity.Order;
 import com.ecommerce.entity.Payment;
 import com.ecommerce.service.PaymentService;
+import com.ecommerce.service.OrderService;
 import com.ecommerce.util.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,142 +20,59 @@ import java.util.Map;
 public class PaymentServlet extends BaseServlet {
 
     private final PaymentService paymentService = new PaymentService();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final OrderService orderService = new OrderService();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, ServletException {
-        req.getRequestDispatcher("/payment.html").forward(req, resp);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
 
-        // ─────────────────────────────────────────────
-        // 🔐 GET TOKEN FROM COOKIE
-        // ─────────────────────────────────────────────
+        // 1. JWT Authentication
         String token = null;
-
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
-            for (Cookie c : cookies) {
-                if ("jwt".equals(c.getName())) {
-                    token = c.getValue();
-                }
-            }
+            for (Cookie c : cookies) if ("jwt".equals(c.getName())) token = c.getValue();
         }
 
         if (token == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            writeJson(resp, error("Non authentifié (cookie manquant)"));
+            resp.setStatus(401);
+            sendJson(resp, 401, Map.of("success", false, "message", "Login required"));
             return;
         }
 
-        // ─────────────────────────────────────────────
-        // 🔐 VERIFY JWT
-        // ─────────────────────────────────────────────
-        Long userId;
         try {
             DecodedJWT jwt = JwtUtil.verify(token);
-            userId = jwt.getClaim("userId").asLong();
-        } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            writeJson(resp, error("Token invalide ou expiré"));
-            return;
-        }
+            Long userId = jwt.getClaim("userId").asLong();
 
-        // ─────────────────────────────────────────────
-        // 💳 PAYMENT LOGIC (UNCHANGED)
-        // ─────────────────────────────────────────────
-        try {
+            // 2. Extract Parameters
             String method = req.getParameter("paymentMethod");
-            String orderIdStr = req.getParameter("orderId");
-            String amountStr = req.getParameter("amount");
+            Long orderId = Long.parseLong(req.getParameter("orderId"));
+            BigDecimal amount = new BigDecimal(req.getParameter("amount"));
 
-            if (method == null || orderIdStr == null || amountStr == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                writeJson(resp, error("Paramètres manquants"));
-                return;
-            }
-
-            Long orderId = Long.parseLong(orderIdStr);
-            BigDecimal amount = new BigDecimal(amountStr);
-
+            // 3. Process Payment based on method
             Payment payment;
-
-            switch (method.toUpperCase()) {
-
-                case "CARD":
-                    payment = paymentService.processCardPayment(
-                            userId,
-                            orderId,
-                            amount,
-                            req.getParameter("cardNumber"),
-                            req.getParameter("cardHolder"),
-                            req.getParameter("expiry"),
-                            req.getParameter("cvv")
-                    );
-                    break;
-
-                case "PAYPAL":
-                    payment = paymentService.processPaypalPayment(
-                            userId,
-                            orderId,
-                            amount,
-                            req.getParameter("paypalEmail")
-                    );
-                    break;
-
-                case "CASH_ON_DELIVERY":
-                    payment = paymentService.processCashOnDelivery(
-                            userId,
-                            orderId,
-                            amount
-                    );
-                    break;
-
-                default:
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    writeJson(resp, error("Méthode de paiement inconnue"));
-                    return;
+            if ("CARD".equalsIgnoreCase(method)) {
+                payment = paymentService.processCardPayment(userId, orderId, amount,
+                        req.getParameter("cardNumber"), req.getParameter("cardHolder"),
+                        req.getParameter("expiry"), req.getParameter("cvv"));
+            } else if ("PAYPAL".equalsIgnoreCase(method)) {
+                payment = paymentService.processPaypalPayment(userId, orderId, amount, req.getParameter("paypalEmail"));
+            } else {
+                payment = paymentService.processCashOnDelivery(userId, orderId, amount);
             }
 
-            writeJson(resp, success(payment));
+            // 4. IMPORTANT: Update the Order Status in BDD
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CONFIRMED);
+
+            // 5. Success response
+            Map<String, Object> res = new HashMap<>();
+            res.put("success", true);
+            res.put("transactionId", payment.getTransactionId());
+            res.put("message", "Payment processed and Order confirmed");
+            sendJson(resp, 200, res);
 
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            writeJson(resp, error("Erreur serveur: " + e.getMessage()));
+            resp.setStatus(500);
+            sendJson(resp, 500, Map.of("success", false, "message", e.getMessage()));
         }
-    }
-
-    // ─────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────
-
-    private Map<String, Object> success(Payment payment) {
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", true);
-        res.put("message", "Paiement effectué avec succès");
-        res.put("transactionId", payment.getTransactionId());
-        res.put("orderId", payment.getOrderId());
-        res.put("amount", payment.getAmount());
-        res.put("method", payment.getPaymentMethod().name());
-        res.put("status", payment.getStatus().name());
-        return res;
-    }
-
-    private Map<String, Object> error(String msg) {
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", false);
-        res.put("message", msg);
-        return res;
-    }
-
-    private void writeJson(HttpServletResponse resp, Object obj) throws IOException {
-        mapper.writeValue(resp.getWriter(), obj);
     }
 }
