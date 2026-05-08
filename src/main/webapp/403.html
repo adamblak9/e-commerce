@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Access Denied — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:      #0d0d0d;
+            --panel:   #141414;
+            --border:  #2a2a2a;
+            --accent:  #c8a96e;
+            --accent2: #e8c98e;
+            --text:    #f0ede8;
+            --muted:   #7a7470;
+            --error:   #e07070;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .brand span { color: var(--text); }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            filter: grayscale(0.3);
+        }
+
+        .error-code {
+            font-family: 'Playfair Display', serif;
+            font-size: 6rem;
+            font-weight: 600;
+            color: var(--error);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            opacity: 0.85;
+        }
+
+        .error-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 420px;
+            line-height: 1.7;
+            margin-bottom: 0.6rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            margin: 1.2rem auto;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            background: rgba(224, 112, 112, 0.12);
+            border: 1px solid rgba(224, 112, 112, 0.3);
+            color: var(--error);
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+        }
+
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: var(--border);
+            margin: 1.8rem auto;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.65rem 1.6rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0d0d0d;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+        }
+        .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+        .footer-note {
+            margin-top: 2.5rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="index.html">Shop<span>Ease</span></a>
+</nav>
+
+<main class="main">
+    <div class="error-icon">🔒</div>
+    <div class="error-code">403</div>
+    <h1 class="error-title">Access Denied</h1>
+
+    <p class="error-message">
+        You don't have permission to view this page.
+        This area is restricted to <strong>Sellers and Admins</strong> only.
+    </p>
+
+    <div class="role-badge" id="yourRole">Your role: —</div>
+
+    <div class="divider"></div>
+
+    <div class="actions">
+        <a href="store.html" class="btn btn-primary">Go to Store</a>
+        <a href="javascript:history.back()" class="btn btn-ghost">← Go Back</a>
+    </div>
+
+    <p class="footer-note">
+        Think this is a mistake? Contact support or log in with a different account.
+    </p>
+</main>
+
+<script>
+    // Show the user's current role in the badge
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const roleEl = document.getElementById('yourRole');
+
+    if (user && user.role) {
+        roleEl.textContent = `Your role: ${user.role}`;
+    } else {
+        roleEl.textContent = 'You are not logged in';
+    }
+
+
+</script>
+
+</body>
+</html>
