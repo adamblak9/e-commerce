@@ -30,7 +30,7 @@ const Auth = (() => {
     // ['ADMIN',...]  → must be logged in AND have one of these roles
     // (omitted)      → public, no check
     const ROUTE_MAP = {
-        //'login.html'     : 'guest',
+        'login.html'     : 'guest',
         'signup.html'    : 'guest',
         // index.html   → public, remove it
         'dashboard.html' : 'auth',
@@ -81,10 +81,16 @@ const Auth = (() => {
     /** Redirect away if already logged in (for login/signup pages). */
     function requireGuest() {
         if (isLoggedIn()) {
-            const intended = sessionStorage.getItem(INTENDED_KEY);
-            sessionStorage.removeItem(INTENDED_KEY);
-            // use intended → referrer → home, in that priority order
-            window.location.replace(intended || document.referrer || 'dashboard.html');
+            // On récupère la page d'où vient l'utilisateur
+            const previousPage = document.referrer;
+
+            // Si on a une page précédente et que ce n'est pas la page de login elle-même
+            if (previousPage && !previousPage.includes('login.html') && !previousPage.includes('signup.html')) {
+                window.location.replace(previousPage);
+            } else {
+                // Si pas d'historique (accès direct), on va au dashboard par sécurité
+                window.location.replace('store.html');
+            }
         }
     }
 
