@@ -3,7 +3,6 @@ package com.ecommerce.servlet;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.service.OrderService;
-import com.ecommerce.service.ProductService;   // add this if you have one
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,11 +16,12 @@ import java.util.stream.Collectors;
 @WebServlet("/api/orders/details")
 public class OrderDetailsServlet extends BaseServlet {
 
-    private final OrderService   orderService   = new OrderService();
+    private final OrderService orderService = new OrderService();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
-         Object userIdAttr = req.getAttribute("userId");
+        Object userIdAttr = req.getAttribute("userId");
         if (userIdAttr == null) {
             sendError(res, 401, "Authentication required.");
             return;
@@ -47,14 +47,17 @@ public class OrderDetailsServlet extends BaseServlet {
                 return;
             }
 
-             List<OrderItem> items = orderService.getOrderItems(orderId);
+            List<OrderItem> items = orderService.getOrderItems(orderId);
 
+            // ← Include productName in every item returned to the frontend
             List<Map<String, Object>> itemsPayload = items.stream().map(item -> {
                 Map<String, Object> m = new HashMap<>();
-                m.put("productId", item.getProductId());
-                m.put("quantity",  item.getQuantity());
-                m.put("price",     item.getPrice());
-
+                m.put("productId",   item.getProductId());
+                m.put("productName", item.getProductName() != null
+                        ? item.getProductName()
+                        : "Product #" + item.getProductId());  // fallback for old rows
+                m.put("quantity",    item.getQuantity());
+                m.put("price",       item.getPrice());
                 return m;
             }).collect(Collectors.toList());
 

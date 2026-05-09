@@ -34,6 +34,7 @@
 
         .checkout-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 18px; border-radius: 12px; font-family: 'Outfit'; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 25px; transition: 0.3s; }
         .checkout-btn:hover { background: #d4b07a; transform: translateY(-2px); }
+        .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         .empty-state { grid-column: 1 / -1; text-align: center; padding: 100px 0; }
     </style>
@@ -54,9 +55,10 @@
         <div class="row"><span>Shipping</span> <span>Calculated at next step</span></div>
         <div class="row total"><span>Total</span> <span id="total">$0.00</span></div>
 
-        <input type="text" id="address" placeholder="Shipping Address..." style="width:100%; padding:12px; border-radius:8px; border:none; margin-top:15px; background:#222; color:#fff;">
+        <input type="text" id="address" placeholder="Shipping Address..."
+               style="width:100%; padding:12px; border-radius:8px; border:none; margin-top:15px; background:#222; color:#fff;">
 
-        <button class="checkout-btn" onclick="checkout()">Checkout Now</button>
+        <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">Checkout Now</button>
     </div>
 </div>
 
@@ -66,7 +68,8 @@
     function render() {
         const list = document.getElementById('cartList');
         if (cart.length === 0) {
-            document.getElementById('cartContainer').innerHTML = `<div class="empty-state"><h2>Your bag is empty</h2><a href="store.html" style="color:var(--accent)">Continue Shopping</a></div>`;
+            document.getElementById('cartContainer').innerHTML =
+                `<div class="empty-state"><h2>Your bag is empty</h2><a href="store.html" style="color:var(--accent)">Continue Shopping</a></div>`;
             return;
         }
 
@@ -88,7 +91,7 @@
 
         const sum = cart.reduce((a, b) => a + (b.price * b.qty), 0);
         document.getElementById('subtotal').textContent = `$${sum.toFixed(2)}`;
-        document.getElementById('total').textContent = `$${sum.toFixed(2)}`;
+        document.getElementById('total').textContent    = `$${sum.toFixed(2)}`;
     }
 
     function updateQty(i, d) {
@@ -104,25 +107,35 @@
     }
 
     async function checkout() {
-        const addr = document.getElementById('address').value;
+        const addr = document.getElementById('address').value.trim();
         if (!addr) { alert("Please enter a shipping address"); return; }
 
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
         if (!user) { window.location.href = 'login.html'; return; }
 
         const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
 
+        // ← FIX: include `name` in every item so the backend can save it
         const payload = {
-            items: cart.map(i => ({ productId: i.id, quantity: i.qty, price: i.price })),
-            total: total,
+            items: cart.map(item => ({
+                productId: item.id,
+                quantity:  item.qty,
+                price:     item.price,
+                name:      item.name        // ← product name saved in order_items
+            })),
+            total:   total,
             address: addr
         };
 
+        const btn = document.getElementById('checkoutBtn');
+        btn.disabled    = true;
+        btn.textContent = 'Processing…';
+
         try {
-            const res = await fetch('http://localhost:8080/ecommerce/api/orders', {
-                method: 'POST',
+            const res = await fetch('/ecommerce/api/orders', {
+                method:  'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type':  'application/json',
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
                 },
                 body: JSON.stringify(payload)
@@ -130,13 +143,19 @@
 
             const data = await res.json();
             if (res.ok) {
-                localStorage.removeItem('cart');
-                // Go to payment page with Order ID and Amount
-                window.location.href = `payment.html?orderId=${data.orderId}&amount=${total}`;
+                // ← Keep cart in localStorage so payment.html can show product names instantly
+                // (it will be cleared after successful payment)
+                window.location.href = `payment.html?orderId=${data.orderId}&amount=${total.toFixed(2)}`;
             } else {
-                alert(data.error);
+                alert(data.error || data.message || 'Checkout failed');
+                btn.disabled    = false;
+                btn.textContent = 'Checkout Now';
             }
-        } catch (e) { alert("Server error"); }
+        } catch (e) {
+            alert("Server error. Please try again.");
+            btn.disabled    = false;
+            btn.textContent = 'Checkout Now';
+        }
     }
 
     render();
