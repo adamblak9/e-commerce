@@ -1,692 +1,406 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <script src="auth.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paiement — E-Commerce</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <title>Checkout — ShopEase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #0b0c10;
-      --surface:   #13141a;
-      --card:      #1a1c25;
-      --border:    #2a2d3a;
-      --accent:    #6c63ff;
-      --accent2:   #00d4aa;
-      --paypal:    #003087;
-      --paypal-y:  #ffc439;
-      --text:      #e8eaf0;
-      --muted:     #7b7f99;
-      --error:     #ff5c7c;
-      --success:   #00d4aa;
-      --radius:    16px;
-      --transition: 0.3s cubic-bezier(.4,0,.2,1);
+      --bg:      #f8f5f0;
+      --dark:    #111009;
+      --accent:  #b8975a;
+      --border:  #e0d8cc;
+      --white:   #ffffff;
+      --muted:   #888;
+      --error:   #c0392b;
+      --radius:  20px;
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); font-family: 'Outfit', sans-serif; color: var(--dark); min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background-image:
-        radial-gradient(ellipse 60% 50% at 20% 0%, rgba(108,99,255,0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 80% 100%, rgba(0,212,170,0.08) 0%, transparent 60%);
+    /* ─── Nav ─── */
+    nav {
+      padding: 0 3rem; height: 64px;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 10;
     }
+    .nav-brand { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; text-decoration: none; color: var(--dark); }
+    .nav-brand span { color: var(--accent); }
+    .nav-step { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 
-    .checkout-wrapper {
-      width: 100%;
-      max-width: 860px;
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
-      align-items: start;
+    /* ─── Layout ─── */
+    .container {
+      max-width: 1100px; margin: 40px auto; padding: 0 20px;
+      display: grid; grid-template-columns: 1fr 380px; gap: 40px; align-items: start;
     }
+    h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 400; margin-bottom: 24px; }
 
-    /* ─── Order summary ─── */
+    /* ─── Order summary card ─── */
     .order-summary {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px;
     }
-
-    .section-label {
-      font-family: 'Syne', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 20px;
+    .order-summary-header {
+      padding: 20px 25px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
     }
-
+    .order-summary-header span { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; }
+    .order-id-badge {
+      font-size: 0.75rem; color: var(--muted);
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 100px; padding: 4px 12px;
+    }
     .order-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
+      display: flex; align-items: center; padding: 18px 25px;
+      border-bottom: 1px solid var(--border); gap: 16px;
     }
     .order-item:last-child { border-bottom: none; }
-    .order-item .name { color: var(--text); }
-    .order-item .qty  { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    .order-item .price { font-weight: 500; }
+    .item-emoji {
+      width: 52px; height: 60px; background: #f4f1ec; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .item-info { flex: 1; }
+    .item-name { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; margin-bottom: 3px; }
+    .item-qty  { font-size: 0.8rem; color: var(--muted); }
+    .item-price { font-weight: 600; color: var(--accent); font-size: 0.95rem; white-space: nowrap; }
+    .order-total-row {
+      display: flex; justify-content: space-between; padding: 18px 25px;
+      background: var(--bg); border-top: 1px solid var(--border);
+      font-weight: 600; font-size: 1.05rem;
+    }
+    .order-total-row .total-amount { color: var(--accent); font-size: 1.2rem; }
 
-    .order-total {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* ─── Method tabs ─── */
+    .method-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+    .method-tab {
+      flex: 1; background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 14px 10px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-family: 'Outfit', sans-serif; font-size: 0.78rem; color: var(--muted);
+      transition: 0.2s ease;
     }
-    .order-total .label { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; }
-    .order-total .amount {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--accent);
-    }
+    .method-tab:hover { border-color: var(--accent); color: var(--dark); }
+    .method-tab.active { border-color: var(--accent); background: #fdf8f1; color: var(--dark); }
+    .method-tab svg { width: 26px; height: 26px; }
 
     /* ─── Payment panel ─── */
     .payment-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden;
     }
+    .panel-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); }
+    .panel-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 4px; }
+    .panel-header p  { font-size: 0.82rem; color: var(--muted); }
 
-    .panel-header {
-      padding: 28px 28px 0;
+    /* ─── Sidebar ─── */
+    .sidebar { position: sticky; top: 84px; }
+    .summary-card { background: var(--dark); color: #fff; padding: 30px; border-radius: 24px; }
+    .summary-card h2 {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 400;
+      margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 14px; margin-bottom: 16px;
     }
-    .panel-header h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-    .panel-header p { color: var(--muted); font-size: 13px; }
-
-    /* ─── Method tabs ─── */
-    .method-tabs {
-      display: flex;
-      gap: 10px;
-      padding: 24px 28px 0;
-    }
-
-    .method-tab {
-      flex: 1;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      background: transparent;
-      cursor: pointer;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      transition: var(--transition);
-      color: var(--muted);
-      position: relative;
-      overflow: hidden;
-    }
-    .method-tab::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 11px;
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .method-tab:hover { border-color: var(--accent); color: var(--text); }
-
-    .method-tab.active {
-      border-color: var(--accent);
-      background: rgba(108,99,255,0.1);
-      color: var(--text);
-    }
-    .method-tab[data-method="PAYPAL"].active {
-      border-color: var(--paypal-y);
-      background: rgba(255,196,57,0.08);
-    }
-    .method-tab[data-method="CASH_ON_DELIVERY"].active {
-      border-color: var(--accent2);
-      background: rgba(0,212,170,0.08);
-    }
-
-    .method-tab svg { width: 28px; height: 28px; }
-    .method-tab span {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-      text-align: center;
+    .s-row { display: flex; justify-content: space-between; margin: 10px 0; font-weight: 300; font-size: 0.88rem; }
+    .s-name { flex: 1; margin-right: 12px; }
+    .s-total {
+      font-size: 1.3rem; font-weight: 600; margin-top: 20px;
+      border-top: 1px solid #333; padding-top: 18px;
+      color: var(--accent); display: flex; justify-content: space-between;
     }
 
     /* ─── Forms ─── */
-    .forms-area {
-      padding: 24px 28px 28px;
-    }
-
+    .forms-area { padding: 24px 28px 28px; }
     .payment-form { display: none; }
-    .payment-form.active { display: block; animation: fadeSlide .3s ease; }
+    .payment-form.active { display: block; animation: fadeSlide 0.22s ease; }
+    @keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .form-row.single { grid-template-columns: 1fr; }
-
-    .field {
-      margin-bottom: 14px;
-    }
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 7px;
-    }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
     .field input {
-      width: 100%;
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      outline: none;
-      transition: var(--transition);
-      letter-spacing: 0.02em;
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; color: var(--dark);
+      font-family: 'Outfit', sans-serif; font-size: 0.9rem; outline: none; transition: 0.2s;
     }
-    .field input:focus { border-color: var(--accent); background: rgba(108,99,255,0.05); }
-    .field input.error { border-color: var(--error); }
-    .field input::placeholder { color: var(--muted); }
+    .field input:focus { border-color: var(--accent); background: #fdf9f4; }
+    .field input::placeholder { color: #ccc; }
 
-    /* Card visual */
+    /* ─── Card visual ─── */
     .card-visual {
-      background: linear-gradient(135deg, #1e2038 0%, #2d2f5e 50%, #1a1c35 100%);
-      border-radius: 14px;
-      padding: 22px 24px;
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-      aspect-ratio: 1.586;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 20px 60px rgba(108,99,255,0.2);
+      background: linear-gradient(135deg, #2c1e0f 0%, #5a3e1c 50%, #2c1e0f 100%);
+      border-radius: 14px; padding: 20px 22px; margin-bottom: 22px;
+      position: relative; overflow: hidden; aspect-ratio: 1.586;
+      display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 16px 48px rgba(184,151,90,0.25);
     }
     .card-visual::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      right: -20%;
-      width: 200px;
-      height: 200px;
-      background: radial-gradient(circle, rgba(108,99,255,0.35), transparent 60%);
+      content: ''; position: absolute; top: -30%; right: -10%;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(184,151,90,0.3), transparent 60%);
       border-radius: 50%;
     }
-    .card-visual::after {
-      content: '';
-      position: absolute;
-      bottom: -30%;
-      left: 10%;
-      width: 150px;
-      height: 150px;
-      background: radial-gradient(circle, rgba(0,212,170,0.2), transparent 60%);
-      border-radius: 50%;
-    }
-    .card-chip {
-      width: 38px;
-      height: 28px;
-      background: linear-gradient(135deg, #c8a96e, #f0d080);
-      border-radius: 5px;
-      position: relative;
-      z-index: 1;
-    }
-    .card-chip::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0; right: 0;
-      height: 1px;
-      background: rgba(0,0,0,0.3);
-      transform: translateY(-50%);
-    }
-    .card-number-display {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: rgba(255,255,255,0.9);
-      position: relative;
-      z-index: 1;
-    }
-    .card-bottom {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      z-index: 1;
-    }
-    .card-info-label {
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.5);
-      margin-bottom: 3px;
-    }
-    .card-info-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.9);
-      letter-spacing: 0.05em;
-    }
-    .card-logo {
-      position: absolute;
-      top: 20px;
-      right: 22px;
-      z-index: 1;
-    }
-    .card-logo svg { width: 52px; }
+    .card-chip { width: 36px; height: 26px; background: linear-gradient(135deg, #c8a96e, #f0d080); border-radius: 5px; }
+    .card-number-display { font-family: 'Outfit', sans-serif; font-size: 17px; letter-spacing: 0.2em; color: rgba(255,255,255,0.9); position: relative; z-index: 1; }
+    .card-bottom { display: flex; justify-content: space-between; position: relative; z-index: 1; }
+    .card-info-label { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 3px; }
+    .card-info-value { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.9); }
+    .card-logo { position: absolute; top: 18px; right: 20px; z-index: 1; }
+    .card-logo svg { width: 48px; }
 
-    /* PayPal form */
-    .paypal-header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .paypal-header svg { width: 120px; margin-bottom: 12px; }
-    .paypal-header p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    /* ─── PayPal ─── */
+    .paypal-header { text-align: center; margin-bottom: 24px; padding-top: 8px; }
+    .paypal-header svg { width: 110px; margin-bottom: 10px; }
+    .paypal-header p { color: var(--muted); font-size: 0.82rem; line-height: 1.6; }
 
-    /* COD */
-    .cod-info {
-      text-align: center;
-      padding: 20px 0;
-    }
-    .cod-icon {
-      width: 64px;
-      height: 64px;
-      background: rgba(0,212,170,0.1);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-    }
-    .cod-icon svg { width: 32px; color: var(--accent2); }
-    .cod-info h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .cod-info p { color: var(--muted); font-size: 13px; line-height: 1.7; }
+    /* ─── COD ─── */
+    .cod-info { text-align: center; padding: 16px 0 24px; }
+    .cod-icon { width: 60px; height: 60px; background: #f4f1ec; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; border: 1px solid var(--border); }
+    .cod-icon svg { width: 28px; color: var(--accent); }
+    .cod-info h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+    .cod-info p  { color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
 
-    /* ─── Submit ─── */
+    /* ─── Pay button ─── */
     .btn-pay {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), #8b83ff);
-      color: #fff;
-      font-family: 'Syne', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: var(--transition);
-      letter-spacing: 0.04em;
-      position: relative;
-      overflow: hidden;
+      width: 100%; padding: 16px; border: none; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: 0.2s;
     }
-    .btn-pay[data-method="PAYPAL"] {
-      background: linear-gradient(135deg, #003087, #0070e0);
-    }
-    .btn-pay[data-method="CASH_ON_DELIVERY"] {
-      background: linear-gradient(135deg, #00a884, var(--accent2));
-    }
-    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,99,255,0.35); }
-    .btn-pay:active { transform: translateY(0); }
+    .btn-pay:hover { background: #d4b07a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(184,151,90,0.3); }
     .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
     .btn-pay .spinner {
-      display: none;
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-      margin: 0 auto;
+      display: none; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .error-msg { color: var(--error); font-size: 0.78rem; margin-top: 6px; display: none; }
+    .secure-badge {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; color: var(--muted); font-size: 0.72rem; margin-top: 16px;
+    }
+    .secure-badge svg { width: 13px; color: var(--accent); }
+
     /* ─── Success overlay ─── */
     .success-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      display: none; position: fixed; inset: 0;
+      background: rgba(17,16,9,0.75); backdrop-filter: blur(6px);
+      z-index: 100; align-items: center; justify-content: center; padding: 24px;
     }
-    .success-overlay.show { display: flex; animation: fadeIn .4s ease; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+    .success-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     .success-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 48px 40px;
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-      animation: popIn .4s cubic-bezier(.34,1.56,.64,1);
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 28px; padding: 48px 40px; text-align: center;
+      max-width: 420px; width: 100%;
+      animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
     }
-    @keyframes popIn {
-      from { transform: scale(.8); opacity: 0; }
-      to   { transform: scale(1);  opacity: 1; }
-    }
-
+    @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .success-icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(0,212,170,0.12);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      animation: pulse 2s ease-in-out infinite;
+      width: 76px; height: 76px; background: #f4f1ec; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 22px; border: 2px solid var(--accent);
     }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.3); }
-      50%       { box-shadow: 0 0 0 16px rgba(0,212,170,0); }
-    }
-    .success-icon svg { width: 40px; color: var(--accent2); }
-
-    .success-card h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .success-card p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 6px; }
-
+    .success-icon svg { width: 36px; color: var(--accent); }
+    .success-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; margin-bottom: 8px; }
+    .success-card p  { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin-bottom: 4px; }
     .txn-badge {
-      display: inline-block;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-family: monospace;
-      font-size: 13px;
-      color: var(--accent);
-      margin: 16px 0 24px;
-      letter-spacing: 0.06em;
+      display: inline-block; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 16px; font-family: monospace;
+      font-size: 0.82rem; color: var(--accent); margin: 14px 0 22px; letter-spacing: 0.06em;
     }
-
-    .method-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 5px 12px;
-      border-radius: 100px;
-      margin-bottom: 20px;
-    }
-    .method-badge.card { background: rgba(108,99,255,0.15); color: var(--accent); }
-    .method-badge.paypal { background: rgba(255,196,57,0.15); color: var(--paypal-y); }
-    .method-badge.cod { background: rgba(0,212,170,0.12); color: var(--accent2); }
-
     .btn-close {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 32px;
-      font-family: 'Syne', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: var(--transition);
+      background: var(--accent); color: #fff; border: none; border-radius: 10px;
+      padding: 13px 36px; font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+      font-weight: 600; cursor: pointer; transition: 0.2s;
     }
-    .btn-close:hover { opacity: 0.85; }
+    .btn-close:hover { background: #d4b07a; }
 
-    .error-msg {
-      color: var(--error);
-      font-size: 12px;
-      margin-top: 6px;
-      display: none;
-    }
-
-    .secure-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 14px;
-    }
-    .secure-badge svg { width: 13px; color: var(--accent2); }
-
-    @media (max-width: 640px) {
-      .checkout-wrapper { grid-template-columns: 1fr; }
-      .order-summary { order: 2; }
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      nav { padding: 0 1.2rem; }
     }
   </style>
 </head>
 <body>
 
-<div class="checkout-wrapper">
+<nav>
+  <a href="store.html" class="nav-brand">Shop<span>Ease</span></a>
+  <span class="nav-step">Step 2 of 2 — Payment</span>
+</nav>
 
-  <!-- ─── Order Summary ─── -->
-  <div class="order-summary">
-    <p class="section-label">Récapitulatif de commande</p>
+<div class="container">
 
-    <div class="order-item">
-      <div>
-        <div class="name">Produit Exemple A</div>
-        <div class="qty">Qté: 2</div>
+  <!-- ── LEFT COLUMN ── -->
+  <div>
+    <h1>Secure Checkout</h1>
+
+    <div class="order-summary">
+      <div class="order-summary-header">
+        <span>Your Order</span>
+        <span class="order-id-badge" id="orderIdBadge">Order #—</span>
       </div>
-      <div class="price">59,90 €</div>
-    </div>
-    <div class="order-item">
-      <div>
-        <div class="name">Produit Exemple B</div>
-        <div class="qty">Qté: 1</div>
+      <div id="itemList">
+        <div class="order-item" style="padding:20px 25px;color:var(--muted);font-size:0.85rem;">
+          Loading items…
+        </div>
       </div>
-      <div class="price">34,99 €</div>
-    </div>
-    <div class="order-item">
-      <div><div class="name">Frais de livraison</div></div>
-      <div class="price" style="color:var(--accent2)">Gratuit</div>
-    </div>
-
-    <div class="order-total">
-      <span class="label">Total</span>
-      <span class="amount" id="displayAmount">94,89 €</span>
+      <div class="order-total-row">
+        <span>Total</span>
+        <span class="total-amount" id="displayAmount">$0.00</span>
+      </div>
     </div>
 
-    <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
-      <p class="section-label">Adresse de livraison</p>
-      <p style="font-size:13px; color:var(--muted); line-height:1.7;">
-        12 Rue des Fleurs<br>75008 Paris, France
-      </p>
-    </div>
-  </div>
-
-  <!-- ─── Payment Panel ─── -->
-  <div class="payment-panel">
-    <div class="panel-header">
-      <h1>Paiement sécurisé</h1>
-      <p>Choisissez votre méthode de paiement</p>
-    </div>
-
-    <!-- Method Tabs -->
     <div class="method-tabs">
-
       <button class="method-tab active" data-method="CARD" onclick="switchMethod('CARD')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="1" y="4" width="22" height="16" rx="3"/>
-          <path d="M1 10h22"/>
+          <rect x="1" y="4" width="22" height="16" rx="3"/><path d="M1 10h22"/>
         </svg>
-        <span>Carte</span>
+        Card
       </button>
-
       <button class="method-tab" data-method="PAYPAL" onclick="switchMethod('PAYPAL')">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19.554 9.488c.121.563.106 1.246-.04 2.051-.582 2.978-2.477 4.466-5.683 4.466h-.442a.666.666 0 0 0-.444.166.72.72 0 0 0-.239.427l-.041.189-.553 3.479-.021.151a.706.706 0 0 1-.247.426.666.666 0 0 1-.427.157H8.874a.395.395 0 0 1-.331-.14.395.395 0 0 1-.09-.323c.037-.243.087-.492.148-.768l.451-2.875a.72.72 0 0 1 .239-.427.666.666 0 0 1 .444-.166h.682c2.239 0 3.956-.617 5.15-1.851.998-1.032 1.636-2.491 1.915-4.377.062-.405.094-.791.094-1.155a5.4 5.4 0 0 0-.048-.715c1.105.553 1.65 1.57 1.926 2.866Z"/>
           <path d="M16.951 6.605c-.213-1.366-1.097-2.283-2.654-2.752a7.916 7.916 0 0 0-2.265-.29H6.91a.786.786 0 0 0-.777.664L4.22 16.81a.474.474 0 0 0 .108.389.474.474 0 0 0 .37.163h2.794l.701-4.432-.022.141a.786.786 0 0 1 .777-.664h1.617c3.178 0 5.665-1.29 6.393-5.021.022-.112.04-.221.057-.329a4.892 4.892 0 0 0-.064-2.452Z"/>
         </svg>
-        <span>PayPal</span>
+        PayPal
       </button>
-
       <button class="method-tab" data-method="CASH_ON_DELIVERY" onclick="switchMethod('CASH_ON_DELIVERY')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
-        <span>Livraison</span>
+        Delivery
       </button>
-
     </div>
 
-    <!-- Forms -->
-    <div class="forms-area">
-
-      <!-- ── CARD FORM ── -->
-      <div class="payment-form active" id="form-CARD">
-
-        <!-- Card visual -->
-        <div class="card-visual">
-          <div class="card-chip"></div>
-          <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
-          <div class="card-bottom">
-            <div>
-              <div class="card-info-label">Titulaire</div>
-              <div class="card-info-value" id="cardHolderDisplay">VOTRE NOM</div>
-            </div>
-            <div>
-              <div class="card-info-label">Expire</div>
-              <div class="card-info-value" id="cardExpiryDisplay">MM/AA</div>
-            </div>
-          </div>
-          <div class="card-logo">
-            <svg viewBox="0 0 52 32" fill="none">
-              <circle cx="20" cy="16" r="13" fill="#eb001b" opacity=".9"/>
-              <circle cx="32" cy="16" r="13" fill="#f79e1b" opacity=".9"/>
-              <path d="M26 6.8a13 13 0 0 1 0 18.4A13 13 0 0 1 26 6.8z" fill="#ff5f00" opacity=".7"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="form-row single">
-          <div class="field">
-            <label>Numéro de carte</label>
-            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456"
-                   maxlength="19" oninput="formatCard(this)" autocomplete="cc-number" />
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="field">
-            <label>Nom du titulaire</label>
-            <input type="text" id="cardHolder" placeholder="JEAN DUPONT"
-                   oninput="updateCardHolder(this)" autocomplete="cc-name" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Date d'expiration</label>
-            <input type="text" id="expiry" placeholder="MM/AA"
-                   maxlength="5" oninput="formatExpiry(this)" autocomplete="cc-exp" />
-          </div>
-          <div class="field">
-            <label>CVV</label>
-            <input type="password" id="cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc" />
-          </div>
-        </div>
-        <div class="error-msg" id="cardError"></div>
-        <button class="btn-pay" data-method="CARD" onclick="submitPayment('CARD')">
-          <span class="btn-text">Payer 94,89 €</span>
-          <div class="spinner"></div>
-        </button>
+    <div class="payment-panel">
+      <div class="panel-header">
+        <h2>Payment Details</h2>
+        <p>Your transaction is secured with SSL / TLS encryption</p>
       </div>
+      <div class="forms-area">
 
-      <!-- ── PAYPAL FORM ── -->
-      <div class="payment-form" id="form-PAYPAL">
-        <div class="paypal-header">
-          <svg viewBox="0 0 120 40" fill="none">
-            <text y="30" font-size="26" font-weight="700" font-family="Arial" fill="#009cde">Pay</text>
-            <text x="44" y="30" font-size="26" font-weight="700" font-family="Arial" fill="#003087">Pal</text>
+        <!-- CARD -->
+        <div class="payment-form active" id="form-CARD">
+          <div class="card-visual">
+            <div class="card-chip"></div>
+            <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+            <div class="card-bottom">
+              <div>
+                <div class="card-info-label">Cardholder</div>
+                <div class="card-info-value" id="cardHolderDisplay">YOUR NAME</div>
+              </div>
+              <div>
+                <div class="card-info-label">Expires</div>
+                <div class="card-info-value" id="cardExpiryDisplay">MM/YY</div>
+              </div>
+            </div>
+            <div class="card-logo">
+              <svg viewBox="0 0 52 32" fill="none">
+                <circle cx="20" cy="16" r="13" fill="#eb001b" opacity=".9"/>
+                <circle cx="32" cy="16" r="13" fill="#f79e1b" opacity=".9"/>
+                <path d="M26 6.8a13 13 0 0 1 0 18.4A13 13 0 0 1 26 6.8z" fill="#ff5f00" opacity=".7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>Card Number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19"
+                     oninput="formatCard(this)" autocomplete="cc-number"/>
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>Cardholder Name</label>
+              <input type="text" id="cardHolder" placeholder="JOHN DOE"
+                     oninput="updateCardHolder(this)" autocomplete="cc-name"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Expiry Date</label>
+              <input type="text" id="expiry" placeholder="MM/YY" maxlength="5"
+                     oninput="formatExpiry(this)" autocomplete="cc-exp"/>
+            </div>
+            <div class="field"><label>CVV</label>
+              <input type="password" id="cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc"/>
+            </div>
+          </div>
+          <div class="error-msg" id="cardError"></div>
+          <button class="btn-pay" id="btnCard" onclick="submitPayment('CARD')">
+            <span class="btn-text" id="btnCardText">Pay $0.00</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <!-- PAYPAL -->
+        <div class="payment-form" id="form-PAYPAL">
+          <div class="paypal-header">
+            <svg viewBox="0 0 120 40" fill="none">
+              <text y="30" font-size="26" font-weight="700" font-family="Arial" fill="#009cde">Pay</text>
+              <text x="44" y="30" font-size="26" font-weight="700" font-family="Arial" fill="#003087">Pal</text>
+            </svg>
+            <p>Enter the email address linked to your PayPal account.</p>
+          </div>
+          <div class="field"><label>PayPal Email</label>
+            <input type="email" id="paypalEmail" placeholder="email@example.com" autocomplete="email"/>
+          </div>
+          <div class="error-msg" id="paypalError"></div>
+          <button class="btn-pay" id="btnPaypal" onclick="submitPayment('PAYPAL')">
+            <span class="btn-text">Continue with PayPal</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <!-- COD -->
+        <div class="payment-form" id="form-CASH_ON_DELIVERY">
+          <div class="cod-info">
+            <div class="cod-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <h3>Cash on Delivery</h3>
+            <p>You'll pay in cash when your order arrives. No charges now.</p>
+          </div>
+          <div class="error-msg" id="codError"></div>
+          <button class="btn-pay" id="btnCod" onclick="submitPayment('CASH_ON_DELIVERY')">
+            <span class="btn-text">Confirm Order</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <div class="secure-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
-          <p>Entrez votre adresse email associée à votre compte PayPal. Vous serez redirigé pour confirmer le paiement.</p>
+          100% Secure Payment — SSL / TLS Encrypted
         </div>
-        <div class="field">
-          <label>Adresse Email PayPal</label>
-          <input type="email" id="paypalEmail" placeholder="email@exemple.com" autocomplete="email" />
-        </div>
-        <div class="error-msg" id="paypalError"></div>
-        <button class="btn-pay" data-method="PAYPAL" onclick="submitPayment('PAYPAL')">
-          <span class="btn-text">Continuer avec PayPal</span>
-          <div class="spinner"></div>
-        </button>
       </div>
-
-      <!-- ── CASH ON DELIVERY FORM ── -->
-      <div class="payment-form" id="form-CASH_ON_DELIVERY">
-        <div class="cod-info">
-          <div class="cod-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-          </div>
-          <h3>Paiement à la livraison</h3>
-          <p>Vous payerez en espèces lors de la réception de votre commande. Assurez-vous d'avoir le montant exact.</p>
-        </div>
-        <div class="error-msg" id="codError"></div>
-        <button class="btn-pay" data-method="CASH_ON_DELIVERY" onclick="submitPayment('CASH_ON_DELIVERY')">
-          <span class="btn-text">Confirmer la commande</span>
-          <div class="spinner"></div>
-        </button>
-      </div>
-
-      <!-- Secure badge -->
-      <div class="secure-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        Paiement 100% sécurisé — SSL / TLS chiffré
-      </div>
-
     </div>
   </div>
+
+  <!-- ── RIGHT SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="summary-card">
+      <h2>Order Summary</h2>
+      <div id="sidebarItems"></div>
+      <div class="s-total">
+        <span>Total</span>
+        <span id="sidebarTotal">$0.00</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- ─── Success Overlay ─── -->
+<!-- Success overlay -->
 <div class="success-overlay" id="successOverlay">
   <div class="success-card">
     <div class="success-icon">
@@ -694,55 +408,121 @@
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </div>
-    <span class="method-badge" id="successMethodBadge"></span>
-    <h2>Paiement réussi !</h2>
-    <p id="successMsg">Votre commande a bien été confirmée.</p>
+    <h2>Order Confirmed!</h2>
+    <p id="successMsg">Your payment was processed successfully.</p>
     <div class="txn-badge" id="successTxnId"></div>
-    <p style="font-size:12px;">Un email de confirmation vous sera envoyé.</p>
-    <button class="btn-close" onclick="document.getElementById('successOverlay').classList.remove('show')">
-      Retour à la boutique
-    </button>
+    <p style="font-size:0.78rem;">A confirmation email will be sent to you shortly.</p>
+    <br/>
+    <button class="btn-close" onclick="window.location.href='store.html'">Back to Store</button>
   </div>
 </div>
 
 <script>
-  // ─── Config ──────────────────────────────────────────────────────────────────
-  const ORDER_ID = 1;  // replace with real session order id
-  const AMOUNT   = '94.89';
+  /* ── URL params ─────────────────────────────────────────────────────────── */
+  const params   = new URLSearchParams(window.location.search);
+  const ORDER_ID = parseInt(params.get('orderId'))   || 0;
+  const AMOUNT   = parseFloat(params.get('amount') || '0').toFixed(2);
 
-  // ─── Method switching ─────────────────────────────────────────────────────────
-  function switchMethod(method) {
+  document.getElementById('displayAmount').textContent = '$' + AMOUNT;
+  document.getElementById('sidebarTotal').textContent  = '$' + AMOUNT;
+  document.getElementById('btnCardText').textContent   = `Pay $${AMOUNT}`;
+  document.getElementById('orderIdBadge').textContent  = `Order #${ORDER_ID}`;
+
+  /* ── Render from localStorage immediately (no flash, no waiting) ─────── */
+  function renderFromCart(cart) {
+    if (!cart || cart.length === 0) return false;
+
+    document.getElementById('itemList').innerHTML = cart.map(item => `
+      <div class="order-item">
+        <div class="item-emoji">🛍️</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.name || 'Product #' + item.id)}</div>
+          <div class="item-qty">Qty: ${item.qty}</div>
+        </div>
+        <div class="item-price">$${(item.price * item.qty).toFixed(2)}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('sidebarItems').innerHTML = cart.map(item => `
+      <div class="s-row">
+        <span class="s-name">${esc(item.name || 'Product #' + item.id)} × ${item.qty}</span>
+        <span>$${(item.price * item.qty).toFixed(2)}</span>
+      </div>
+    `).join('');
+
+    return true;
+  }
+
+  /* ── Also fetch from API to confirm productName from DB ─────────────── */
+  async function enrichFromApi() {
+    const token = localStorage.getItem('token');
+    if (!token || !ORDER_ID) return;
+    try {
+      const res = await fetch(`/ecommerce/api/orders/details?orderId=${ORDER_ID}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.items || data.items.length === 0) return;
+
+      document.getElementById('itemList').innerHTML = data.items.map(item => `
+        <div class="order-item">
+          <div class="item-emoji">🛍️</div>
+          <div class="item-info">
+            <div class="item-name">${esc(item.productName || 'Product #' + item.productId)}</div>
+            <div class="item-qty">Qty: ${item.quantity}</div>
+          </div>
+          <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('sidebarItems').innerHTML = data.items.map(item => `
+        <div class="s-row">
+          <span class="s-name">${esc(item.productName || 'Product #' + item.productId)} × ${item.quantity}</span>
+          <span>$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+    } catch (_) { /* keep localStorage render */ }
+  }
+
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if (!renderFromCart(cart)) {
+    document.getElementById('itemList').innerHTML =
+      '<div class="order-item" style="padding:20px 25px;color:var(--muted);font-size:0.85rem;">No items found.</div>';
+  }
+  enrichFromApi();
+
+  /* ── Method switching ─────────────────────────────────────────────────── */
+  function switchMethod(m) {
     document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.payment-form').forEach(f => f.classList.remove('active'));
-    document.querySelector(`.method-tab[data-method="${method}"]`).classList.add('active');
-    document.getElementById(`form-${method}`).classList.add('active');
+    document.querySelector(`.method-tab[data-method="${m}"]`).classList.add('active');
+    document.getElementById(`form-${m}`).classList.add('active');
   }
 
-  // ─── Card live update ─────────────────────────────────────────────────────────
+  /* ── Card live preview ────────────────────────────────────────────────── */
   function formatCard(el) {
-    let v = el.value.replace(/\D/g, '').substring(0, 16);
-    el.value = v.replace(/(.{4})/g, '$1 ').trim();
-    const display = v.padEnd(16, '•');
+    let v = el.value.replace(/\D/g,'').substring(0,16);
+    el.value = v.replace(/(.{4})/g,'$1 ').trim();
     document.getElementById('cardNumberDisplay').textContent =
-      display.replace(/(.{4})/g, '$1 ').trim();
+      v.padEnd(16,'•').replace(/(.{4})/g,'$1 ').trim();
   }
-
   function updateCardHolder(el) {
-    const v = el.value.toUpperCase() || 'VOTRE NOM';
-    document.getElementById('cardHolderDisplay').textContent = v;
+    document.getElementById('cardHolderDisplay').textContent = el.value.toUpperCase() || 'YOUR NAME';
   }
-
   function formatExpiry(el) {
-    let v = el.value.replace(/\D/g, '').substring(0, 4);
-    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    let v = el.value.replace(/\D/g,'').substring(0,4);
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
     el.value = v;
-    document.getElementById('cardExpiryDisplay').textContent = v || 'MM/AA';
+    document.getElementById('cardExpiryDisplay').textContent = v || 'MM/YY';
   }
 
-  // ─── Submit ───────────────────────────────────────────────────────────────────
+  /* ── Submit ───────────────────────────────────────────────────────────── */
   async function submitPayment(method) {
-    const btn    = document.querySelector(`.btn-pay[data-method="${method}"]`);
-    const errEl  = document.getElementById(methodErrorId(method));
+    const btnMap = { CARD:'btnCard', PAYPAL:'btnPaypal', CASH_ON_DELIVERY:'btnCod' };
+    const errMap = { CARD:'cardError', PAYPAL:'paypalError', CASH_ON_DELIVERY:'codError' };
+    const btn  = document.getElementById(btnMap[method]);
+    const errEl= document.getElementById(errMap[method]);
 
     hideError(errEl);
     setLoading(btn, true);
@@ -751,7 +531,6 @@
     body.append('paymentMethod', method);
     body.append('orderId',       ORDER_ID);
     body.append('amount',        AMOUNT);
-
     if (method === 'CARD') {
       body.append('cardNumber', document.getElementById('cardNumber').value);
       body.append('cardHolder', document.getElementById('cardHolder').value);
@@ -762,23 +541,26 @@
     }
 
     try {
-      const res  = await fetch('payment', { method: 'POST', body });
+      const token = localStorage.getItem('token');
+      const res   = await fetch('/ecommerce/payment', {
+        method: 'POST',
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+        body
+      });
       const data = await res.json();
 
       if (data.success) {
+        // Stock is decremented server-side inside PaymentServlet → OrderService.decrementStockForOrder()
+        localStorage.removeItem('cart');
         showSuccess(data, method);
       } else {
-        showError(errEl, data.message || 'Une erreur est survenue.');
+        showError(errEl, data.message || 'An error occurred. Please try again.');
       }
     } catch (e) {
-      showError(errEl, 'Erreur réseau. Veuillez réessayer.');
+      showError(errEl, 'Network error. Please check your connection and try again.');
     } finally {
       setLoading(btn, false);
     }
-  }
-
-  function methodErrorId(m) {
-    return m === 'CARD' ? 'cardError' : m === 'PAYPAL' ? 'paypalError' : 'codError';
   }
 
   function setLoading(btn, on) {
@@ -786,33 +568,23 @@
     btn.querySelector('.btn-text').style.display = on ? 'none' : '';
     btn.querySelector('.spinner').style.display  = on ? 'block' : 'none';
   }
-
   function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
-  function hideError(el) { el.style.display = 'none'; }
+  function hideError(el)      { el.style.display = 'none'; }
 
-  // ─── Success ──────────────────────────────────────────────────────────────────
   function showSuccess(data, method) {
-    const labels = {
-      CARD:             ['card',   '💳 Carte bancaire'],
-      PAYPAL:           ['paypal', '🅿️ PayPal'],
-      CASH_ON_DELIVERY: ['cod',    '🏠 Paiement livraison']
-    };
-    const [cls, label] = labels[method];
-
-    const badge = document.getElementById('successMethodBadge');
-    badge.className = `method-badge ${cls}`;
-    badge.textContent = label;
-
-    document.getElementById('successTxnId').textContent = data.transactionId;
-
     const msgs = {
-      CARD:             'Votre carte a été débitée avec succès. Commande confirmée.',
-      PAYPAL:           'Paiement PayPal accepté. Commande confirmée.',
-      CASH_ON_DELIVERY: 'Commande enregistrée. Paiement à effectuer à la réception.'
+      CARD:             'Your card has been charged successfully.',
+      PAYPAL:           'PayPal payment accepted. Order confirmed.',
+      CASH_ON_DELIVERY: 'Order registered. Please pay in cash upon delivery.'
     };
-    document.getElementById('successMsg').textContent = msgs[method];
-
+    document.getElementById('successMsg').textContent   = msgs[method];
+    document.getElementById('successTxnId').textContent = data.transactionId || `TXN-${Date.now()}`;
     document.getElementById('successOverlay').classList.add('show');
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 </script>
 </body>
