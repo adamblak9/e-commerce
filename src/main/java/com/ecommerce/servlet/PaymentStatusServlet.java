@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet("/payment/status")
-public class PaymentStatusServlet extends BaseServlet {
+public class  PaymentStatusServlet extends BaseServlet {
 
     private final PaymentService paymentService = new PaymentService();
     private final ObjectMapper mapper = new ObjectMapper();
