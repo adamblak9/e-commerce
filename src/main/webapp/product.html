@@ -5,313 +5,667 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Product — ShopEase</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <!-- Same fonts as login: Fraunces (serif) + DM Sans (sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
-            --bg:      #f8f5f0;
-            --bg2:     #f0ebe2;
-            --dark:    #111009;
-            --panel:   #1a1810;
-            --accent:  #b8975a;
-            --accent2: #d4b07a;
-            --text:    #1a1810;
-            --muted:   #8a8278;
-            --border:  #e0d8cc;
-            --white:   #ffffff;
-            --success: #4a9e6e;
-            --error:   #c0504040;
+            --bg:         #ffffff;
+            --panel:      #f9f9f8;
+            --border:     #e8e8e6;
+            --border2:    #d4d4d0;
+            --accent:     #1a6ef5;
+            --accent2:    #4488ff;
+            --accentL:    rgba(26,110,245,0.08);
+            --text:       #111110;
+            --text2:      #3a3a38;
+            --muted:      #888886;
+            --error:      #e53535;
+            --success:    #18a058;
+            --warning:    #e68a2e;
+            --shadow-sm:  0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
-        html { scroll-behavior: smooth; }
-        body { background: var(--bg); font-family: 'Outfit', sans-serif; color: var(--text); min-height: 100vh; }
-        a { text-decoration: none; color: inherit; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-        /* ── Navbar ── */
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ----- Navigation (mirrors login) ----- */
         nav {
-            position: sticky; top: 0; z-index: 100;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 3rem; height: 64px;
-            background: rgba(248,245,240,0.95);
-            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 70px;
+            background: var(--bg);
             border-bottom: 1px solid var(--border);
         }
-        .nav-brand { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; }
-        .nav-brand span { color: var(--accent); }
-        .nav-r { display: flex; align-items: center; gap: 1rem; }
-        .cart-btn { position: relative; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: border-color 0.2s; }
-        .cart-btn:hover { border-color: var(--accent); }
-        .cart-count { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: var(--accent); color: var(--white); border-radius: 50%; font-size: 0.6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
-        .nav-user { display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; color: var(--muted); }
-        .nav-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 600; color: var(--white); }
 
-        /* ── Breadcrumb ── */
+        .nav-brand {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .nav-brand span {
+            color: var(--accent);
+        }
+
+        .nav-r {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cart-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .cart-btn:hover {
+            border-color: var(--accent);
+            background: var(--accentL);
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .nav-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* ----- Breadcrumb ----- */
         .breadcrumb {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 1rem 3rem;
-            font-size: 0.82rem; color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 2rem;
+            font-size: 0.8rem;
+            color: var(--muted);
             border-bottom: 1px solid var(--border);
-            background: var(--white);
+            background: var(--panel);
         }
-        .breadcrumb a { color: var(--muted); transition: color 0.2s; }
-        .breadcrumb a:hover { color: var(--accent); }
-        .breadcrumb .sep { color: var(--border); }
-        .breadcrumb .current { color: var(--text); font-weight: 500; }
+        .breadcrumb a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+        .breadcrumb .sep {
+            color: var(--border2);
+        }
+        .breadcrumb .current {
+            color: var(--text);
+            font-weight: 500;
+        }
 
-        /* ── Product section ── */
+        /* ----- Product section (2 columns) ----- */
         .product-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0;
+            gap: 3rem;
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem;
-            gap: 4rem;
+            margin: 2.5rem auto;
+            padding: 0 2rem;
         }
 
-        /* ── Image panel ── */
-        .img-panel { position: sticky; top: 84px; align-self: start; }
-
+        /* Image panel */
+        .img-panel {
+            position: sticky;
+            top: 90px;
+            align-self: start;
+        }
         .main-img {
             width: 100%;
             aspect-ratio: 1;
-            background: var(--bg2);
-            border-radius: 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 8rem;
+            background: var(--panel);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
             overflow: hidden;
             position: relative;
             margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
-
-        .main-img img { width: 100%; height: 100%; object-fit: cover; }
-
+        .main-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .img-badge {
-            position: absolute; top: 1rem; left: 1rem;
-            padding: 0.3rem 0.8rem; border-radius: 100px;
-            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
         }
-        .badge-new { background: var(--dark); color: var(--white); }
-        .badge-out { background: #e07070; color: var(--white); }
-        .badge-low { background: #f0a030; color: var(--white); }
+        .badge-new {
+            background: var(--accent);
+            color: white;
+        }
+        .badge-out {
+            background: rgba(229,53,53,0.9);
+            color: white;
+        }
+        .badge-low {
+            background: var(--warning);
+            color: white;
+        }
 
-        .thumb-row { display: flex; gap: 0.6rem; }
+        .thumb-row {
+            display: flex;
+            gap: 0.6rem;
+        }
         .thumb {
-            width: 72px; height: 72px;
-            background: var(--bg2); border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; cursor: pointer;
+            width: 70px;
+            height: 70px;
+            background: var(--panel);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
             border: 2px solid transparent;
-            transition: border-color 0.2s;
+            transition: border 0.2s;
             overflow: hidden;
+            border: 1px solid var(--border);
         }
-        .thumb.active { border-color: var(--accent); }
-        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accentL);
+        }
+        .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-        /* ── Info panel ── */
-        .info-panel { padding: 0.5rem 0; }
-
+        /* Info panel */
+        .info-panel {
+            padding: 0.5rem 0;
+        }
         .product-cat {
-            font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.6rem;
         }
-
         .product-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(2rem, 3vw, 2.8rem);
-            font-weight: 400; line-height: 1.1;
-            margin-bottom: 1.2rem;
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 0.8rem;
         }
-
         .product-price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2.2rem; font-weight: 600;
-            color: var(--dark); margin-bottom: 0.5rem;
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
         }
-
         .stock-status {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            font-size: 0.85rem; font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
             margin-bottom: 1.5rem;
         }
-        .stock-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .stock-in  { color: var(--success); }
-        .stock-in  .stock-dot { background: var(--success); }
-        .stock-low { color: #e07070; }
-        .stock-low .stock-dot { background: #e07070; }
-        .stock-out { color: var(--muted); }
-        .stock-out .stock-dot { background: var(--muted); }
+        .stock-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .stock-in {
+            color: var(--success);
+        }
+        .stock-in .stock-dot {
+            background: var(--success);
+        }
+        .stock-low {
+            color: var(--warning);
+        }
+        .stock-low .stock-dot {
+            background: var(--warning);
+        }
+        .stock-out {
+            color: var(--muted);
+        }
+        .stock-out .stock-dot {
+            background: var(--muted);
+        }
 
-        .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1.2rem 0;
+        }
 
         .product-desc {
-            font-size: 0.95rem; font-weight: 300;
-            line-height: 1.9; color: var(--muted);
-            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text2);
+            margin-bottom: 1.5rem;
         }
 
-        /* ── Quantity + Add to Cart ── */
-        .purchase-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-
+        /* Purchase row */
+        .purchase-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
         .qty-wrap {
-            display: flex; align-items: center;
-            border: 1px solid var(--border); border-radius: 10px;
-            overflow: hidden; background: var(--white);
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg);
         }
         .qty-btn {
-            width: 40px; height: 48px;
-            background: transparent; border: none;
-            font-size: 1.2rem; color: var(--text);
-            cursor: pointer; transition: background 0.15s;
-            display: flex; align-items: center; justify-content: center;
+            width: 42px;
+            height: 48px;
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        .qty-btn:hover { background: var(--bg2); }
-        .qty-btn:disabled { color: var(--border); cursor: not-allowed; }
+        .qty-btn:hover:not(:disabled) {
+            background: var(--panel);
+        }
+        .qty-btn:disabled {
+            color: var(--border2);
+            cursor: not-allowed;
+        }
         .qty-val {
-            width: 48px; text-align: center;
-            font-size: 1rem; font-weight: 500;
+            width: 48px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
             border-left: 1px solid var(--border);
             border-right: 1px solid var(--border);
             line-height: 48px;
         }
-
         .btn-cart {
-            flex: 1; padding: 0 2rem; height: 48px;
-            background: var(--dark); color: var(--white);
-            border: none; border-radius: 10px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem; font-weight: 500;
-            cursor: pointer; letter-spacing: 0.03em;
-            transition: background 0.2s, transform 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            flex: 1;
+            height: 48px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        .btn-cart:hover:not(:disabled) { background: var(--panel); transform: translateY(-1px); }
-        .btn-cart:active { transform: translateY(0); }
-        .btn-cart:disabled { background: var(--border); cursor: not-allowed; color: var(--muted); }
+        .btn-cart:hover:not(:disabled) {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+        .btn-cart:active {
+            transform: translateY(0);
+        }
+        .btn-cart:disabled {
+            background: var(--border2);
+            cursor: not-allowed;
+            color: var(--muted);
+        }
 
-        /* ── Feedback ── */
+        /* Feedback message */
         .add-feedback {
-            padding: 0.7rem 1rem; border-radius: 10px;
-            font-size: 0.88rem; font-weight: 500;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
             margin-bottom: 1rem;
             display: none;
         }
-        .add-feedback.success { background: rgba(74,158,110,0.1); border: 1px solid rgba(74,158,110,0.3); color: var(--success); display: block; }
-        .add-feedback.error   { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); color: #e07070; display: block; }
+        .add-feedback.success {
+            display: block;
+            background: rgba(24,160,88,0.08);
+            border: 1px solid rgba(24,160,88,0.2);
+            color: var(--success);
+        }
+        .add-feedback.error {
+            display: block;
+            background: rgba(229,53,53,0.08);
+            border: 1px solid rgba(229,53,53,0.2);
+            color: var(--error);
+        }
 
-        /* ── Meta info ── */
+        /* Meta grid */
         .meta-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 0.8rem; margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
         }
         .meta-item {
-            padding: 0.8rem 1rem;
-            background: var(--bg2); border-radius: 10px;
-        }
-        .meta-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.2rem; }
-        .meta-value { font-size: 0.9rem; font-weight: 500; }
-
-        /* ── Seller info ── */
-        .seller-box {
-            display: flex; align-items: center; gap: 0.8rem;
-            padding: 0.9rem 1rem;
-            border: 1px solid var(--border); border-radius: 10px;
-            background: var(--white);
-        }
-        .seller-avatar {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; font-weight: 600; color: var(--white);
-            flex-shrink: 0;
-        }
-        .seller-name { font-size: 0.9rem; font-weight: 500; }
-        .seller-label { font-size: 0.75rem; color: var(--muted); }
-
-        /* ── Related products ── */
-        .related-section {
-            max-width: 1200px; margin: 0 auto;
-            padding: 0 3rem 4rem;
-        }
-        .section-tag { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
-        .section-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; margin-bottom: 2rem; }
-
-        .related-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.2rem;
-        }
-
-        .product-card {
-            background: var(--white); border-radius: 16px;
-            overflow: hidden; cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 0.7rem 1rem;
+            background: var(--panel);
+            border-radius: 14px;
             border: 1px solid var(--border);
         }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+        .meta-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+        .meta-value {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
 
+        /* Seller box */
+        .seller-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg);
+        }
+        .seller-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+        .seller-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+        .seller-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Related products section */
+        .related-section {
+            max-width: 1200px;
+            margin: 2rem auto 4rem;
+            padding: 0 2rem;
+        }
+        .section-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 1.5rem;
+        }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+        .product-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--accentL);
+        }
         .pc-img {
-            width: 100%; aspect-ratio: 1;
-            background: var(--bg2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3.5rem;
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border-bottom: 1px solid var(--border);
         }
-        .pc-img img { width: 100%; height: 100%; object-fit: cover; }
-
-        .pc-body { padding: 0.9rem 1rem 1rem; }
-        .pc-cat { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
-        .pc-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pc-foot { display: flex; align-items: center; justify-content: space-between; }
-        .pc-price { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; }
-        .pc-add { width: 30px; height: 30px; border-radius: 50%; background: var(--dark); border: none; color: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .pc-add:hover { background: var(--accent); }
-
-        /* ── Skeleton ── */
-        .skeleton { animation: pulse 1.5s ease infinite; }
-        .skel-box { background: var(--bg2); border-radius: 12px; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-        /* ── Toast ── */
-        .toast {
-            position: fixed; bottom: 2rem; right: 2rem;
-            background: var(--dark); color: var(--white);
-            padding: 0.8rem 1.4rem; border-radius: 12px;
-            font-size: 0.88rem; font-weight: 500; z-index: 999;
-            transform: translateY(80px); opacity: 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        .pc-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
-
-        /* ── Error state ── */
-        .error-state {
-            text-align: center; padding: 8rem 2rem;
-            grid-column: 1 / -1;
+        .pc-body {
+            padding: 0.8rem 1rem 1rem;
         }
-        .error-state h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; margin-bottom: 0.5rem; }
-        .error-state p { color: var(--muted); margin-bottom: 1.5rem; }
-        .back-btn {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            padding: 0.7rem 1.5rem; background: var(--dark); color: var(--white);
-            border-radius: 100px; font-size: 0.88rem; font-weight: 500;
+        .pc-cat {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.3rem;
+        }
+        .pc-name {
+            font-family: 'Fraunces', serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pc-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pc-price {
+            font-family: 'Fraunces', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .pc-add {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background 0.2s;
         }
-        .back-btn:hover { background: var(--panel); }
+        .pc-add:hover {
+            background: var(--accent2);
+        }
 
-        @media (max-width: 900px) {
-            .product-section { grid-template-columns: 1fr; padding: 1.5rem; gap: 2rem; }
-            .img-panel { position: static; }
-            .related-grid { grid-template-columns: repeat(2, 1fr); }
-            .related-section { padding: 0 1.5rem 3rem; }
-            nav { padding: 0 1.5rem; }
-            .breadcrumb { padding: 1rem 1.5rem; }
+        /* Skeletons */
+        .skeleton {
+            animation: pulse 1.5s infinite ease;
+        }
+        .skel-box {
+            background: var(--panel);
+            border-radius: 16px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--text);
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Error state */
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            grid-column: 1 / -1;
+        }
+        .error-state h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .error-state p {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: var(--accent2);
+        }
+
+        @media (max-width: 780px) {
+            .product-section {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 0 1rem;
+                margin: 1.5rem auto;
+            }
+            .img-panel {
+                position: static;
+            }
+            .related-section {
+                padding: 0 1rem;
+            }
+            nav {
+                padding: 0 1rem;
+            }
+            .breadcrumb {
+                padding: 0.8rem 1rem;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- Navigation -->
 <nav>
     <a href="index.html" class="nav-brand">Shop<span>Ease</span></a>
     <div class="nav-r">
@@ -334,63 +688,54 @@
     <span class="current" id="breadcrumbName">Loading…</span>
 </div>
 
-<!-- Product -->
+<!-- Product main section -->
 <div class="product-section" id="productSection">
-
     <!-- Image skeleton -->
     <div class="skeleton" id="imgSkeleton">
-        <div class="skel-box" style="width:100%;aspect-ratio:1;border-radius:20px;margin-bottom:1rem;"></div>
-        <div style="display:flex;gap:0.6rem;">
-            <div class="skel-box" style="width:72px;height:72px;border-radius:10px;"></div>
-            <div class="skel-box" style="width:72px;height:72px;border-radius:10px;"></div>
-            <div class="skel-box" style="width:72px;height:72px;border-radius:10px;"></div>
+        <div class="skel-box" style="width:100%; aspect-ratio:1; border-radius:24px; margin-bottom:1rem;"></div>
+        <div style="display:flex; gap:0.6rem;">
+            <div class="skel-box" style="width:70px; height:70px; border-radius:16px;"></div>
+            <div class="skel-box" style="width:70px; height:70px; border-radius:16px;"></div>
+            <div class="skel-box" style="width:70px; height:70px; border-radius:16px;"></div>
         </div>
     </div>
-
     <!-- Info skeleton -->
     <div class="skeleton" id="infoSkeleton" style="padding:0.5rem 0;">
-        <div class="skel-box" style="width:80px;height:12px;border-radius:6px;margin-bottom:0.8rem;"></div>
-        <div class="skel-box" style="width:70%;height:32px;border-radius:8px;margin-bottom:0.5rem;"></div>
-        <div class="skel-box" style="width:40%;height:32px;border-radius:8px;margin-bottom:1rem;"></div>
-        <div class="skel-box" style="width:100%;height:80px;border-radius:8px;margin-bottom:1rem;"></div>
-        <div class="skel-box" style="width:100%;height:48px;border-radius:10px;"></div>
+        <div class="skel-box" style="width:80px; height:12px; border-radius:6px; margin-bottom:0.8rem;"></div>
+        <div class="skel-box" style="width:70%; height:32px; border-radius:8px; margin-bottom:0.8rem;"></div>
+        <div class="skel-box" style="width:40%; height:36px; border-radius:8px; margin-bottom:1rem;"></div>
+        <div class="skel-box" style="width:100%; height:80px; border-radius:12px; margin-bottom:1rem;"></div>
+        <div class="skel-box" style="width:100%; height:48px; border-radius:12px;"></div>
     </div>
 
-    <!-- Real content (hidden until loaded) -->
-    <div id="imgPanel" style="display:none;">
+    <!-- Real content placeholders (hidden initially) -->
+    <div id="imgPanel" style="display:none;" class="img-panel">
         <div class="main-img" id="mainImg"></div>
         <div class="thumb-row" id="thumbRow"></div>
     </div>
-
     <div id="infoPanel" style="display:none;" class="info-panel">
-        <div class="product-cat"  id="pCat"></div>
+        <div class="product-cat" id="pCat"></div>
         <div class="product-name" id="pName"></div>
         <div class="product-price" id="pPrice"></div>
         <div class="stock-status" id="pStock"></div>
         <div class="divider"></div>
         <div class="product-desc" id="pDesc"></div>
-
         <div class="add-feedback" id="addFeedback"></div>
-
         <div class="purchase-row">
             <div class="qty-wrap">
                 <button class="qty-btn" id="qtyMinus" onclick="changeQty(-1)">−</button>
                 <div class="qty-val" id="qtyVal">1</div>
                 <button class="qty-btn" id="qtyPlus" onclick="changeQty(1)">+</button>
             </div>
-            <button class="btn-cart" id="addCartBtn" onclick="addToCart()">
-                🛒 Add to Cart
-            </button>
+            <button class="btn-cart" id="addCartBtn" onclick="addToCart()">🛒 Add to Cart</button>
         </div>
-
         <div class="meta-grid" id="metaGrid"></div>
         <div class="divider"></div>
         <div class="seller-box" id="sellerBox"></div>
     </div>
-
 </div>
 
-<!-- Related products -->
+<!-- Related products section -->
 <div class="related-section">
     <div class="section-tag">You might also like</div>
     <div class="section-title">Related Products</div>
@@ -400,17 +745,16 @@
 <div class="toast" id="toast"></div>
 
 <script>
+    // ===================== ORIGINAL LOGIC (fully preserved) =====================
     const BASE  = 'http://localhost:8080/ecommerce/api';
     const user  = JSON.parse(localStorage.getItem('user') || 'null');
     let cart    = JSON.parse(localStorage.getItem('cart') || '[]');
     let qty     = 1;
     let product = null;
 
-    // ── Get product ID from URL ──────────────────────
     const params    = new URLSearchParams(window.location.search);
     const productId = params.get('id');
 
-    // ── Init ─────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
         initNav();
         updateCartCount();
@@ -427,7 +771,6 @@
         }
     }
 
-    // ── Fetch product ─────────────────────────────────
     async function fetchProduct() {
         try {
             const res  = await fetch(`${BASE}/products/${productId}`);
@@ -440,7 +783,6 @@
         }
     }
 
-    // ── Render product ───────────────────────────────
     function renderProduct(p) {
         // Breadcrumb
         document.getElementById('breadcrumbName').textContent = p.name;
@@ -452,23 +794,23 @@
         if (p.imageUrl) {
             mainImg.innerHTML = `<img src="${p.imageUrl}" alt="${p.name}"/>${badge}`;
         } else {
-            mainImg.innerHTML = `<span style="font-size:8rem;">🛍️</span>${badge}`;
+            mainImg.innerHTML = `<span style="font-size:5rem;">🛍️</span>${badge}`;
         }
 
-        // Thumbs (placeholder for extra images)
+        // Thumbnails (placeholder)
         document.getElementById('thumbRow').innerHTML = `
-        <div class="thumb active">🛍️</div>
-        <div class="thumb" style="opacity:0.3;">🛍️</div>
-        <div class="thumb" style="opacity:0.2;">🛍️</div>
-      `;
+            <div class="thumb active">🛍️</div>
+            <div class="thumb" style="opacity:0.3;">🛍️</div>
+            <div class="thumb" style="opacity:0.2;">🛍️</div>
+        `;
 
-        // Info
+        // Info fields
         document.getElementById('pCat').textContent   = p.category || 'General';
         document.getElementById('pName').textContent  = p.name;
         document.getElementById('pPrice').textContent = '$' + parseFloat(p.price).toFixed(2);
         document.getElementById('pDesc').textContent  = p.description || 'No description available.';
 
-        // Stock
+        // Stock status
         const stockEl = document.getElementById('pStock');
         const isOut   = p.status === 'OUT_OF_STOCK' || p.stockQuantity === 0;
         const isLow   = p.stockQuantity > 0 && p.stockQuantity <= 5;
@@ -488,42 +830,41 @@
 
         // Meta grid
         document.getElementById('metaGrid').innerHTML = `
-        <div class="meta-item">
-          <div class="meta-label">Category</div>
-          <div class="meta-value">${p.category || '—'}</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">Stock</div>
-          <div class="meta-value">${p.stockQuantity} units</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">Status</div>
-          <div class="meta-value">${p.status}</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">Product ID</div>
-          <div class="meta-value">#${p.id}</div>
-        </div>
-      `;
+            <div class="meta-item">
+                <div class="meta-label">Category</div>
+                <div class="meta-value">${p.category || '—'}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Stock</div>
+                <div class="meta-value">${p.stockQuantity} units</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Status</div>
+                <div class="meta-value">${p.status}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Product ID</div>
+                <div class="meta-value">#${p.id}</div>
+            </div>
+        `;
 
-        // Seller box
+        // Seller info
         const initials = 'S' + p.sellerId;
         document.getElementById('sellerBox').innerHTML = `
-        <div class="seller-avatar">${initials}</div>
-        <div>
-          <div class="seller-label">Sold by</div>
-          <div class="seller-name">Seller #${p.sellerId}</div>
-        </div>
-      `;
+            <div class="seller-avatar">${initials}</div>
+            <div>
+                <div class="seller-label">Sold by</div>
+                <div class="seller-name">Seller #${p.sellerId}</div>
+            </div>
+        `;
 
-        // Show panels, hide skeletons
+        // Show real panels, hide skeletons
         document.getElementById('imgSkeleton').style.display  = 'none';
         document.getElementById('infoSkeleton').style.display = 'none';
         document.getElementById('imgPanel').style.display     = 'block';
         document.getElementById('infoPanel').style.display    = 'block';
     }
 
-    // ── Fetch related products ───────────────────────
     async function fetchRelated(category, excludeId) {
         try {
             const res  = await fetch(`${BASE}/products?category=${encodeURIComponent(category)}`);
@@ -534,7 +875,7 @@
             renderRelated(list);
         } catch (err) {
             document.getElementById('relatedGrid').innerHTML =
-                '<p style="color:var(--muted);font-size:0.9rem;">Could not load related products.</p>';
+                '<p style="color:var(--muted); font-size:0.85rem;">Could not load related products.</p>';
         }
     }
 
@@ -544,23 +885,22 @@
             return;
         }
         document.getElementById('relatedGrid').innerHTML = list.map(p => `
-        <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
-          <div class="pc-img">
-            ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}"/>` : '🛍️'}
-          </div>
-          <div class="pc-body">
-            <div class="pc-cat">${p.category || 'General'}</div>
-            <div class="pc-name">${p.name}</div>
-            <div class="pc-foot">
-              <div class="pc-price">$${parseFloat(p.price).toFixed(2)}</div>
-              <button class="pc-add" onclick="addRelated(event,${p.id},'${p.name}',${p.price})">+</button>
+            <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
+                <div class="pc-img">
+                    ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}"/>` : '🛍️'}
+                </div>
+                <div class="pc-body">
+                    <div class="pc-cat">${p.category || 'General'}</div>
+                    <div class="pc-name">${p.name}</div>
+                    <div class="pc-foot">
+                        <div class="pc-price">$${parseFloat(p.price).toFixed(2)}</div>
+                        <button class="pc-add" onclick="addRelated(event, ${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price})">+</button>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
     }
 
-    // ── Qty controls ─────────────────────────────────
     function changeQty(delta) {
         const max = product?.stockQuantity || 99;
         qty = Math.min(Math.max(1, qty + delta), max);
@@ -569,17 +909,14 @@
         document.getElementById('qtyPlus').disabled      = qty >= max;
     }
 
-    // ── Add to cart ──────────────────────────────────
     function addToCart() {
         if (!product) return;
-
         const existing = cart.find(i => i.id === product.id);
         if (existing) {
             existing.qty += qty;
         } else {
             cart.push({ id: product.id, name: product.name, price: parseFloat(product.price), qty });
         }
-
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartCount();
 
@@ -587,20 +924,19 @@
         fb.className = 'add-feedback success';
         fb.textContent = `✓ ${qty} × "${product.name}" added to cart`;
         setTimeout(() => { fb.className = 'add-feedback'; }, 3000);
-
         showToast(`${qty} item${qty > 1 ? 's' : ''} added to cart 🛒`);
     }
 
     function addRelated(e, id, name, price) {
         e.stopPropagation();
         const existing = cart.find(i => i.id === id);
-        if (existing) existing.qty++; else cart.push({ id, name, price: parseFloat(price), qty: 1 });
+        if (existing) existing.qty++;
+        else cart.push({ id, name, price: parseFloat(price), qty: 1 });
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartCount();
         showToast(`"${name}" added to cart 🛒`);
     }
 
-    // ── Helpers ──────────────────────────────────────
     function updateCartCount() {
         const total = cart.reduce((s, i) => s + i.qty, 0);
         document.getElementById('cartCount').textContent = total;
@@ -620,18 +956,18 @@
         document.getElementById('imgSkeleton').style.display  = 'none';
         document.getElementById('infoSkeleton').style.display = 'none';
         document.getElementById('productSection').innerHTML = `
-        <div class="error-state">
-          <h2>Product not found</h2>
-          <p>${msg}</p>
-          <a href="store.html" class="back-btn">← Back to Store</a>
-        </div>`;
+            <div class="error-state">
+                <h2>Product not found</h2>
+                <p>${msg}</p>
+                <a href="store.html" class="back-btn">← Back to Store</a>
+            </div>`;
     }
 
     function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2500);
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
     }
 </script>
 </body>

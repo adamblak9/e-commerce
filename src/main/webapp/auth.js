@@ -31,14 +31,15 @@ const Auth = (() => {
     // (omitted)      → public, no check
     const ROUTE_MAP = {
         'login.html'     : 'guest',
+        'cart.html'     : 'auth',
         'signup.html'    : 'guest',
-        // index.html   → public, remove it
+         'index.html'   : ['guest', 'auth'],
         'dashboard.html' : 'auth',
         'profile.html'   : 'auth',
         'payment.html'   : 'auth',
         'products.html'  : ['ADMIN', 'SELLER'],
         'product.html'   : 'auth',
-         'store.html '   : 'guest',
+        'store.html'   : 'auth',
     };
 
     // ── Helpers ───────────────────────────────────────────────────────────────

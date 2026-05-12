@@ -7,10 +7,9 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
-@WebFilter("/api/*")  // intercepts every request to /api/...
+@WebFilter("/api/*")
 public class JwtFilter implements Filter {
 
     private static final String[] PUBLIC_ROUTES = {
@@ -18,82 +17,75 @@ public class JwtFilter implements Filter {
             "/api/auth/signup"
     };
 
-    private static final String[] PUBLIC_PREFIXES = {
-            "/api/products"
-    };
-
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest  req = (HttpServletRequest)  request;
+        HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        // ── Allow CORS (needed if your HTML pages are on a different port) ──
-        res.setHeader("Access-Control-Allow-Origin",  "*");
+        // CORS
+        res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-        // ── Let preflight OPTIONS requests through immediately ──
         if ("OPTIONS".equalsIgnoreCase(req.getMethod())) {
             res.setStatus(HttpServletResponse.SC_OK);
             return;
         }
 
-        // ── Check if route is public ──
         String path = req.getServletPath();
+        String method = req.getMethod();
+
+        // Routes totalement publiques (login, signup)
         for (String pub : PUBLIC_ROUTES) {
             if (path.equals(pub)) {
                 chain.doFilter(request, response);
                 return;
             }
         }
-// Allow GET requests to /api/products publicly
-        if ("GET".equalsIgnoreCase(req.getMethod())) {
-            for (String prefix : PUBLIC_PREFIXES) {
-                if (path.startsWith(prefix)) {
-                    chain.doFilter(request, response);
-                    return;
+
+        // Rendre public le GET /api/products
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/products")) {
+            // On laisse passer, mais on peut quand même extraire le token s'il est présent
+            String authHeader = req.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                try {
+                    DecodedJWT jwt = JwtUtil.verify(token);
+                    req.setAttribute("userId", jwt.getClaim("userId").asLong());
+                    req.setAttribute("email", jwt.getSubject());
+                    req.setAttribute("role", jwt.getClaim("role").asString());
+                } catch (JWTVerificationException e) {
+                    // Token invalide : on ignore, on laisse passer sans attributs
                 }
             }
-        }
-
-        // ── Extract the Authorization header ──
-        String authHeader = req.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            sendError(res, 401, "Missing or invalid Authorization header. Expected: Bearer <token>");
+            chain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7); // remove "Bearer " prefix
+        // Toutes les autres routes nécessitent un token valide
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            sendError(res, 401, "Missing or invalid Authorization header.");
+            return;
+        }
 
-        // ── Verify the token ──
+        String token = authHeader.substring(7);
         try {
             DecodedJWT jwt = JwtUtil.verify(token);
-
-            // Attach user info to the request so servlets can read it
             req.setAttribute("userId", jwt.getClaim("userId").asLong());
-            req.setAttribute("email",  jwt.getSubject());
-            req.setAttribute("role",   jwt.getClaim("role").asString());
-
-            chain.doFilter(request, response); // token is valid, continue
-
+            req.setAttribute("email", jwt.getSubject());
+            req.setAttribute("role", jwt.getClaim("role").asString());
+            chain.doFilter(request, response);
         } catch (JWTVerificationException e) {
-            sendError(res, 401, "Token is invalid or expired. Please log in again.");
+            sendError(res, 401, "Invalid or expired token.");
         }
     }
 
-    private void sendError(HttpServletResponse res, int status, String message)
-            throws IOException {
+    private void sendError(HttpServletResponse res, int status, String message) throws IOException {
         res.setStatus(status);
         res.setContentType("application/json");
-        res.setCharacterEncoding("UTF-8");
-        res.getWriter().write(
-                "{\"error\": \"" + message + "\", \"status\": " + status + "}"
-        );
+        res.getWriter().write("{\"error\":\"" + message + "\"}");
     }
-
-    @Override public void init(FilterConfig config) {}
-    @Override public void destroy() {}
 }

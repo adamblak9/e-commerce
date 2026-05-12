@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @WebServlet("/api/products/*")
 public class ProductServlet extends BaseServlet {
@@ -27,39 +28,81 @@ public class ProductServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String pathInfo = req.getPathInfo(); // e.g. "/5" or null
+        Long userId = (Long) req.getAttribute("userId");
+        String role = (String) req.getAttribute("role");
+
+        String pathInfo = req.getPathInfo();
 
         try {
             if (pathInfo != null && !pathInfo.equals("/")) {
-                // GET /api/products/{id}
                 Long id = parseId(pathInfo);
                 Map<String, Object> product = productService.getProductById(id);
-                sendJson(res, 200, product);
-
-            } else {
-                String category = req.getParameter("category");
-                String search   = req.getParameter("search");
-                String seller   = req.getParameter("seller");
-
-                List<Map<String, Object>> products;
-
-                if (search != null && !search.isBlank()) {
-                    products = productService.search(search);
-                } else if (category != null && !category.isBlank()) {
-                    products = productService.getByCategory(category);
-                } else if (seller != null && !seller.isBlank()) {
-                    products = productService.getBySeller(Long.parseLong(seller));
-                } else {
-                    products = productService.getAllProducts();
+                if ("SELLER".equals(role) && userId != null && !product.get("sellerId").equals(userId)) {
+                    sendError(res, 403, "Accès interdit");
+                    return;
                 }
-
-                sendJson(res, 200, products);
+                sendJson(res, 200, product);
+                return;
             }
+
+            String category = req.getParameter("category");
+            String search   = req.getParameter("search");
+            String seller   = req.getParameter("seller");
+
+            if ("ADMIN".equals(role) && userId != null) {
+                List<Map<String, Object>> products;
+                if (search != null && !search.isBlank())
+                    products = productService.search(search);
+                else if (category != null && !category.isBlank())
+                    products = productService.getByCategory(category);
+                else if (seller != null && !seller.isBlank())
+                    products = productService.getBySeller(Long.parseLong(seller));
+                else
+                    products = productService.getAllProducts();
+                sendJson(res, 200, products);
+                return;
+            }
+
+            if ("SELLER".equals(role) && userId != null) {
+                if (seller != null && !seller.isBlank() && !seller.equals(String.valueOf(userId))) {
+                    sendError(res, 403, "Vous ne pouvez voir que vos propres produits");
+                    return;
+                }
+                if (search == null && category == null) {
+                    sendJson(res, 200, productService.getBySeller(userId));
+                    return;
+                }
+                List<Map<String, Object>> results;
+                if (search != null && !search.isBlank())
+                    results = productService.search(search);
+                else
+                    results = productService.getByCategory(category);
+
+                final Long currentUserId = userId;
+                List<Map<String, Object>> filtered = results.stream()
+                        .filter(p -> p.get("sellerId").equals(currentUserId))
+                        .collect(Collectors.toList());
+                sendJson(res, 200, filtered);
+                return;
+            }
+
+            // Non authentifié ou autre rôle : tout afficher (comportement public)
+            List<Map<String, Object>> products;
+            if (search != null && !search.isBlank())
+                products = productService.search(search);
+            else if (category != null && !category.isBlank())
+                products = productService.getByCategory(category);
+            else if (seller != null && !seller.isBlank())
+                products = productService.getBySeller(Long.parseLong(seller));
+            else
+                products = productService.getAllProducts();
+            sendJson(res, 200, products);
 
         } catch (IllegalArgumentException e) {
             sendError(res, 404, e.getMessage());
         } catch (Exception e) {
-            sendError(res, 500, "An unexpected error occurred");
+            e.printStackTrace();
+            sendError(res, 500, "Erreur interne");
         }
     }
 
