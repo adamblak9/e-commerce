@@ -10,7 +10,7 @@
 
         <properties>
             <property name="jakarta.persistence.jdbc.url"
-                      value="jdbc:sqlserver://localhost:1433;databaseName=ecommerce_db;encrypt=false;trustServerCertificate=true"/>
+                      value="jdbc:sqlserver://commerce-sqlserver-1:1433;databaseName=ecommerce_db;encrypt=false;trustServerCertificate=true"/>
             <property name="jakarta.persistence.jdbc.user"     value="sa"/>
             <property name="jakarta.persistence.jdbc.password" value="Admin123!"/>
             <property name="jakarta.persistence.jdbc.driver"   value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>

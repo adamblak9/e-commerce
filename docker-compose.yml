@@ -1,0 +1,40 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: Admin123!
+      MSSQL_PID: "Express"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -Q 'SELECT 1' -No"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+    networks:
+      - ecommerce-net
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: sqlserver
+      DB_PORT: 1433
+      DB_NAME: ecommerce_db
+      DB_USER: sa
+      DB_PASSWORD: Admin123!
+      JWT_SECRET: your-secret-here
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+
+volumes:
+  sqlserver-data:
+
+networks:
+  ecommerce-net:

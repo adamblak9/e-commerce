@@ -812,7 +812,7 @@
     const token = localStorage.getItem('token');
     if (!token || !ORDER_ID) return;
     try {
-      const res = await fetch(`/ecommerce/api/orders/details?orderId=${ORDER_ID}`, {
+      const res = await fetch(`/api/orders/details?orderId=${ORDER_ID}`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       if (!res.ok) return;
@@ -891,7 +891,7 @@
 
     try {
       const token = localStorage.getItem('token');
-      const res   = await fetch('/ecommerce/payment', {
+      const res   = await fetch('/payment', {
         method: 'POST',
         headers: token ? { 'Authorization': 'Bearer ' + token } : {},
         body
