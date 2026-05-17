@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <script src="auth.js"></script>
+    <script src="cart.js"></script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Store — ShopEase</title>
@@ -772,16 +773,16 @@
     const BASE = '/api';
     let allProducts = [], filtered = [], currentPage = 1;
     const PAGE_SIZE = 12;
-    let cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cartItems = []; // loaded from Cart API on init
     let selectedCat = '', currentSort = 'newest', searchTimer = null;
 
     const token = localStorage.getItem('token');
     const user  = JSON.parse(localStorage.getItem('user') || 'null');
 
     // ── Init ───────────────────────────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
         initNav();
-        updateCartCount();
+        await Cart.refreshBadge('cartCount');
         fetchProducts();
     });
 
@@ -1031,17 +1032,14 @@
     }
 
     // ── Cart ───────────────────────────────────────────────────────
-    function addToCart(e, id, name, price) {
+    async function addToCart(e, id, name, price) {
         e.stopPropagation();
-        const ex = cartItems.find(i => i.id===id);
-        if (ex) ex.qty++; else cartItems.push({id,name,price:parseFloat(price),qty:1});
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-        updateCartCount();
+        await Cart.add(id, name, parseFloat(price), 1);
+        await Cart.refreshBadge('cartCount');
         showToast(`"${name}" added to cart 🛒`);
     }
-    function updateCartCount() {
-        const total = cartItems.reduce((s,i)=>s+i.qty,0);
-        document.getElementById('cartCount').textContent = total;
+    async function updateCartCount() {
+        await Cart.refreshBadge('cartCount');
     }
     function goToCart()          { window.location.href = 'cart.html'; }
     function toggleWishlist(e,id){ e.stopPropagation(); const b=e.currentTarget; const l=b.classList.toggle('liked'); b.textContent=l?'❤️':'🤍'; showToast(l?'Added to wishlist ❤️':'Removed from wishlist'); }
