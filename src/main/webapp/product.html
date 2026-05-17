@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <script src="auth.js"></script>
+    <script src="cart.js"></script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Product — ShopEase</title>
@@ -748,16 +749,16 @@
     // ===================== ORIGINAL LOGIC (fully preserved) =====================
     const BASE  = '/api';
     const user  = JSON.parse(localStorage.getItem('user') || 'null');
-    let cart    = JSON.parse(localStorage.getItem('cart') || '[]');
+    // cart is now managed by Cart API (cart.js)
     let qty     = 1;
     let product = null;
 
     const params    = new URLSearchParams(window.location.search);
     const productId = params.get('id');
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
         initNav();
-        updateCartCount();
+        await Cart.refreshBadge('cartCount');
         if (!productId) { showError('No product ID provided.'); return; }
         fetchProduct();
     });
@@ -909,16 +910,10 @@
         document.getElementById('qtyPlus').disabled      = qty >= max;
     }
 
-    function addToCart() {
+    async function addToCart() {
         if (!product) return;
-        const existing = cart.find(i => i.id === product.id);
-        if (existing) {
-            existing.qty += qty;
-        } else {
-            cart.push({ id: product.id, name: product.name, price: parseFloat(product.price), qty });
-        }
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
+        await Cart.add(product.id, product.name, parseFloat(product.price), qty, product.imageUrl || '');
+        await Cart.refreshBadge('cartCount');
 
         const fb = document.getElementById('addFeedback');
         fb.className = 'add-feedback success';
@@ -927,19 +922,15 @@
         showToast(`${qty} item${qty > 1 ? 's' : ''} added to cart 🛒`);
     }
 
-    function addRelated(e, id, name, price) {
+    async function addRelated(e, id, name, price) {
         e.stopPropagation();
-        const existing = cart.find(i => i.id === id);
-        if (existing) existing.qty++;
-        else cart.push({ id, name, price: parseFloat(price), qty: 1 });
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
+        await Cart.add(id, name, parseFloat(price), 1);
+        await Cart.refreshBadge('cartCount');
         showToast(`"${name}" added to cart 🛒`);
     }
 
-    function updateCartCount() {
-        const total = cart.reduce((s, i) => s + i.qty, 0);
-        document.getElementById('cartCount').textContent = total;
+    async function updateCartCount() {
+        await Cart.refreshBadge('cartCount');
     }
 
     function getBadge(p) {

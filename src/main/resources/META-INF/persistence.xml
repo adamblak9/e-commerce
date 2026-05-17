@@ -7,6 +7,8 @@
         <!-- Register all entities here -->
         <class>com.ecommerce.entity.User</class>
         <class>com.ecommerce.entity.Product</class>
+        <class>com.ecommerce.entity.Cart</class>
+        <class>com.ecommerce.entity.CartItem</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.url"
