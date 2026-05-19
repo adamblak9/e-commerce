@@ -2,6 +2,7 @@ package com.ecommerce.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cart_items", uniqueConstraints = {
@@ -33,6 +34,17 @@ public class CartItem {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "added_at", nullable = false)
+    private LocalDateTime addedAt;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.addedAt == null) this.addedAt = LocalDateTime.now();
+    }
+
     // ── Constructors ──────────────────────────────────
     public CartItem() {}
 
@@ -42,6 +54,15 @@ public class CartItem {
         this.price       = price;
         this.quantity    = quantity;
         this.imageUrl    = imageUrl;
+    }
+
+    public CartItem(Long productId, String productName, BigDecimal price, int quantity, String imageUrl, Long userId) {
+        this.productId   = productId;
+        this.productName = productName;
+        this.price       = price;
+        this.quantity    = quantity;
+        this.imageUrl    = imageUrl;
+        this.userId      = userId;
     }
 
     // ── Getters & Setters ─────────────────────────────
@@ -55,4 +76,7 @@ public class CartItem {
     public int        getQuantity()    { return quantity; }
     public void       setQuantity(int q) { this.quantity = q; }
     public String     getImageUrl()    { return imageUrl; }
+    public Long       getUserId()      { return userId; }
+    public void       setUserId(Long u){ this.userId = u; }
+    public LocalDateTime getAddedAt()  { return addedAt; }
 }
