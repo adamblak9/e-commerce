@@ -45,8 +45,8 @@ public class Orderstatusupdater implements ServletContextListener {
             List<Order> orders = em.createQuery(
                             "SELECT o FROM Order o WHERE o.status = :status AND o.createdAt <= :cutoff",
                             Order.class)
-                    .setParameter("status", Order.OrderStatus.SHIPPED)
-                    .setParameter("cutoff", LocalDateTime.now().minusHours(1))
+                    .setParameter("status", Order.OrderStatus.CONFIRMED)
+                    .setParameter("cutoff", java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusHours(1))
                     .getResultList();
 
             for (Order o : orders) {
