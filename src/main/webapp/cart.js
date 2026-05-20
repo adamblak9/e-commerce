@@ -31,18 +31,41 @@ const Cart = (() => {
     const Guest = {
         load() { return JSON.parse(localStorage.getItem(GUEST_KEY) || '[]'); },
         save(items) { localStorage.setItem(GUEST_KEY, JSON.stringify(items)); },
-        add(id, name, price, qty = 1, imageUrl = '') {
+        add(id, name, price, qty = 1, imageUrl = '', stock = Infinity) {
             const items = this.load();
             const ex = items.find(i => i.id === id);
-            if (ex) ex.qty += qty;
-            else items.push({ id, name, price: parseFloat(price), qty, imageUrl });
+            if (ex) {
+                const newQty = ex.qty + qty;
+                ex.qty = stock !== Infinity ? Math.min(newQty, stock) : newQty;
+                if (ex.qty >= stock && stock !== Infinity) {
+                    // Return a special flag so caller knows limit was hit
+                    this.save(items);
+                    const resp = this.toResponse(items);
+                    resp._atStockLimit = true;
+                    return resp;
+                }
+            } else {
+                const addQty = stock !== Infinity ? Math.min(qty, stock) : qty;
+                if (addQty <= 0) {
+                    const resp = this.toResponse(items);
+                    resp._outOfStock = true;
+                    return resp;
+                }
+                items.push({ id, name, price: parseFloat(price), qty: addQty, imageUrl, stock });
+            }
             this.save(items);
             return this.toResponse(items);
         },
         updateQty(id, newQty) {
             let items = this.load();
             if (newQty <= 0) items = items.filter(i => i.id !== id);
-            else { const ex = items.find(i => i.id === id); if (ex) ex.qty = newQty; }
+            else {
+                const ex = items.find(i => i.id === id);
+                if (ex) {
+                    const cap = ex.stock || Infinity;
+                    ex.qty = Math.min(newQty, cap);
+                }
+            }
             this.save(items);
             return this.toResponse(items);
         },
@@ -55,7 +78,8 @@ const Cart = (() => {
                     productId: i.id, productName: i.name,
                     price: i.price, quantity: i.qty,
                     imageUrl: i.imageUrl || '',
-                    subtotal: i.price * i.qty
+                    subtotal: i.price * i.qty,
+                    stockQuantity: i.stock || 9999
                 })),
                 total,
                 count: items.reduce((s, i) => s + i.qty, 0)
@@ -76,7 +100,14 @@ const Cart = (() => {
                 method: 'POST', headers: authHeaders(),
                 body: JSON.stringify({ productId, productName, price, quantity, imageUrl })
             });
-            return res.json();
+            const data = await res.json();
+            if (!res.ok) {
+                // Attach error info so callers can show a message
+                data._error = true;
+                data._status = res.status;
+                data._message = data.error || data.message || 'Failed to add item';
+            }
+            return data;
         },
         async updateQty(productId, quantity) {
             const res = await fetch(BASE, {
@@ -116,9 +147,9 @@ const Cart = (() => {
     }
 
     /** Add item to cart */
-    async function add(id, name, price, qty = 1, imageUrl = '') {
+    async function add(id, name, price, qty = 1, imageUrl = '', stock = Infinity) {
         if (isLoggedIn()) return API.add(id, name, price, qty, imageUrl);
-        return Guest.add(id, name, price, qty, imageUrl);
+        return Guest.add(id, name, price, qty, imageUrl, stock);
     }
 
     /** Update quantity */

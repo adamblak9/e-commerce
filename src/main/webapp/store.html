@@ -974,7 +974,7 @@
                 <div class="pc-desc">${escapeHtml(p.description||'')}</div>
                 <div class="pc-footer">
                     <div><div class="pc-price">$${price}</div>${stockTxt}</div>
-                    <button class="btn-add" ${isOut?'disabled':''} onclick="addToCart(event,${p.id},'${escapeJs(p.name)}',${p.price})">+</button>
+                    <button class="btn-add" ${isOut?'disabled':''} onclick="addToCart(event,${p.id},'${escapeJs(p.name)}',${p.price},${p.stockQuantity})">+</button>
                 </div>
             </div>
         </div>`;
@@ -1032,11 +1032,56 @@
     }
 
     // ── Cart ───────────────────────────────────────────────────────
-    async function addToCart(e, id, name, price) {
+    async function addToCart(e, id, name, price, stock) {
         e.stopPropagation();
-        await Cart.add(id, name, parseFloat(price), 1);
+
+        // Find product in local array and check stock
+        const product = allProducts.find(p => p.id === id);
+        if (!product || product.stockQuantity <= 0) {
+            showToast('❌ This product is out of stock');
+            return;
+        }
+
+        const result = await Cart.add(id, name, parseFloat(price), 1, product.imageUrl || '', product.stockQuantity);
+
+        // Handle API errors (logged-in users)
+        if (result._error) {
+            if (result._status === 409) {
+                showToast(`⚠️ Can't add more — stock limit reached`);
+            } else {
+                showToast(`❌ ${result._message}`);
+            }
+            return;
+        }
+
+        // Handle guest cart limit
+        if (result._outOfStock) {
+            showToast('❌ This product is out of stock');
+            return;
+        }
+
+        // BUG 2 FIX: Decrement local stock so the displayed count updates immediately
+        product.stockQuantity = Math.max(0, product.stockQuantity - 1);
+        if (product.stockQuantity === 0) {
+            product.status = 'OUT_OF_STOCK';
+        }
+
         await Cart.refreshBadge('cartCount');
-        showToast(`"${name}" added to cart 🛒`);
+
+        // Re-render only the affected card without full page reload
+        const card = e.target.closest('.product-card');
+        if (card) {
+            const idx = filtered.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                card.outerHTML = productCard(product, idx);
+            }
+        }
+
+        if (result._atStockLimit) {
+            showToast(`🛒 "${name}" added — that's the last one!`);
+        } else {
+            showToast(`"${name}" added to cart 🛒`);
+        }
     }
     async function updateCartCount() {
         await Cart.refreshBadge('cartCount');
