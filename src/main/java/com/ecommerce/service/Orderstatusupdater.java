@@ -41,12 +41,12 @@ public class Orderstatusupdater implements ServletContextListener {
         try {
             em.getTransaction().begin();
 
-            // Find SHIPPED orders placed more than 1 hour ago
+            // Find SHIPPED orders placed more than 3 minutes  ago
             List<Order> orders = em.createQuery(
                             "SELECT o FROM Order o WHERE o.status = :status AND o.createdAt <= :cutoff",
                             Order.class)
                     .setParameter("status", Order.OrderStatus.CONFIRMED)
-                    .setParameter("cutoff", java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusHours(1))
+                    .setParameter("cutoff", java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(3))
                     .getResultList();
 
             for (Order o : orders) {
