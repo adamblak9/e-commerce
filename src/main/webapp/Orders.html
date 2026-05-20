@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Orders — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#f8f5f0;--bg2:#f0ebe2;--dark:#111009;--panel:#1a1810;
+            --accent:#b8975a;--accent2:#d4b07a;--text:#1a1810;--muted:#8a8278;
+            --border:#e0d8cc;--white:#fff;
+            --shipped:#3b82f6;--delivering:#3b82f6;--delivered:#22c55e;--pending:#f59e0b;--cancelled:#ef4444;
+        }
+        html{scroll-behavior:smooth}
+        body{background:var(--bg);font-family:'Outfit',sans-serif;color:var(--text);min-height:100vh}
+        a{text-decoration:none;color:inherit}
+
+        /* Redirect if not logged in */
+
+        /* ── Navbar ── */
+        nav{
+            position:sticky;top:0;z-index:100;
+            display:flex;align-items:center;justify-content:space-between;
+            padding:0 3rem;height:64px;
+            background:rgba(248,245,240,.96);backdrop-filter:blur(12px);
+            border-bottom:1px solid var(--border);
+        }
+        .nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600}
+        .nav-brand span{color:var(--accent)}
+        .nav-right{display:flex;align-items:center;gap:1rem}
+        .nav-user{display:flex;align-items:center;gap:.6rem;font-size:.88rem;color:var(--muted)}
+        .nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;color:#fff}
+        .back-btn{padding:.5rem 1.2rem;border:1px solid var(--border);border-radius:100px;font-size:.85rem;font-weight:500;cursor:pointer;background:transparent;font-family:'Outfit',sans-serif;transition:all .2s}
+        .back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+        /* ── Page header ── */
+        .page-header{padding:3rem 3rem 2rem;border-bottom:1px solid var(--border);background:var(--white)}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:300;margin-bottom:.4rem}
+        .page-header p{color:var(--muted);font-size:.92rem}
+
+        /* ── Tabs ── */
+        .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--white);padding:0 3rem}
+        .tab{padding:.9rem 1.5rem;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+        .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+        .tab-count{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bg2);font-size:.7rem;font-weight:600;margin-left:.4rem;color:var(--text)}
+        .tab.active .tab-count{background:var(--accent);color:#fff}
+
+        /* ── Content ── */
+        .content{max-width:900px;margin:0 auto;padding:2.5rem 3rem}
+
+        /* ── Order card ── */
+        .order-card{
+            background:var(--white);border:1px solid var(--border);
+            border-radius:16px;margin-bottom:1.5rem;overflow:hidden;
+            transition:box-shadow .2s;
+        }
+        .order-card:hover{box-shadow:0 8px 30px rgba(0,0,0,.07)}
+
+        .order-head{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+            cursor:pointer;
+        }
+        .order-head-left{display:flex;align-items:center;gap:1.2rem}
+
+        .order-id{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600}
+        .order-date{font-size:.8rem;color:var(--muted)}
+
+        .status-badge{
+            display:inline-flex;align-items:center;gap:.4rem;
+            padding:.35rem .85rem;border-radius:100px;
+            font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+        }
+        .status-dot{width:6px;height:6px;border-radius:50%}
+
+        .status-SHIPPED{background:rgba(59,130,246,.1);color:var(--delivering)}
+        .status-SHIPPED .status-dot{background:var(--delivering)}
+        .status-DELIVERED{background:rgba(34,197,94,.1);color:var(--delivered)}
+        .status-DELIVERED .status-dot{background:var(--delivered)}
+        .status-PENDING{background:rgba(245,158,11,.1);color:var(--pending)}
+        .status-PENDING .status-dot{background:var(--pending)}
+        .status-CANCELLED{background:rgba(239,68,68,.1);color:var(--cancelled)}
+        .status-CANCELLED .status-dot{background:var(--cancelled)}
+
+        .order-total{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600}
+        .chevron{font-size:.85rem;color:var(--muted);transition:transform .3s}
+        .order-card.open .chevron{transform:rotate(180deg)}
+
+        /* ── Order body (collapsible) ── */
+        .order-body{display:none;padding:1.5rem}
+        .order-card.open .order-body{display:block}
+
+        /* Progress tracker */
+        .progress-track{display:flex;align-items:center;margin-bottom:2rem}
+        .progress-step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+        .progress-step:not(:last-child)::after{
+            content:'';position:absolute;top:14px;left:50%;width:100%;
+            height:2px;background:var(--border);z-index:0;
+        }
+        .progress-step.done:not(:last-child)::after{background:var(--delivered)}
+        .progress-step.active:not(:last-child)::after{background:var(--delivering)}
+
+        .step-dot{
+            width:28px;height:28px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:.85rem;z-index:1;border:2px solid var(--border);
+            background:var(--white);transition:all .3s;
+        }
+        .progress-step.done .step-dot{background:var(--delivered);border-color:var(--delivered);color:#fff}
+        .progress-step.active .step-dot{background:var(--delivering);border-color:var(--delivering);color:#fff;animation:pulse 2s ease infinite}
+        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+
+        .step-label{font-size:.72rem;font-weight:500;color:var(--muted);margin-top:.5rem;text-align:center}
+        .progress-step.done .step-label,.progress-step.active .step-label{color:var(--text)}
+
+        /* Order info grid */
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        .info-box{background:var(--bg2);border-radius:10px;padding:.9rem 1rem}
+        .info-label{font-size:.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+        .info-value{font-size:.9rem;font-weight:500}
+
+        /* Items list */
+        .items-title{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+        .order-item{display:flex;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--border)}
+        .order-item:last-child{border-bottom:none}
+        .oi-img{width:52px;height:52px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0}
+        .oi-img img{width:100%;height:100%;object-fit:cover}
+        .oi-info{flex:1;min-width:0}
+        .oi-name{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .oi-qty{font-size:.8rem;color:var(--muted);margin-top:2px}
+        .oi-price{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600}
+
+        /* Totals */
+        .order-totals{margin-top:1.2rem;border-top:1px solid var(--border);padding-top:1.2rem}
+        .total-row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:.4rem;color:var(--muted)}
+        .total-row.grand{font-size:1.1rem;font-weight:600;color:var(--text);margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border)}
+        .grand .grand-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem}
+
+        /* ── Empty state ── */
+        .empty-state{text-align:center;padding:5rem 2rem}
+        .empty-state .icon{font-size:3rem;margin-bottom:1rem}
+        .empty-state h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:.5rem}
+        .empty-state p{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
+        .shop-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.8rem;background:var(--dark);color:#fff;border-radius:100px;font-size:.9rem;font-weight:500;transition:background .2s}
+        .shop-btn:hover{background:var(--panel)}
+
+        /* ── Skeleton ── */
+        .skeleton{animation:skpulse 1.5s ease infinite}
+        .skel-box{background:var(--bg2);border-radius:10px}
+        @keyframes skpulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        /* ── Delivering timer ── */
+        .delivery-timer{
+            display:inline-flex;align-items:center;gap:.4rem;
+            font-size:.78rem;color:var(--delivering);font-weight:500;
+            margin-left:.5rem;
+        }
+
+        @media(max-width:768px){
+            nav{padding:0 1.5rem}
+            .page-header,.tabs,.content{padding-left:1.5rem;padding-right:1.5rem}
+            .info-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    // Redirect if not logged in or not a customer
+    const _u = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!_u) window.location.replace('login.html');
+    if (_u && _u.role !== 'CUSTOMER') window.location.replace('index.html');
+</script>
+
+<!-- Navbar -->
+<nav>
+    <a href="index.html" class="nav-brand">Shop<span>Ease</span></a>
+    <div class="nav-right">
+        <div class="nav-user">
+            <div class="nav-avatar" id="navAvatar"></div>
+            <span id="navName"></span>
+        </div>
+        <button class="back-btn" onclick="window.location.href='store.html'">← Continue Shopping</button>
+    </div>
+</nav>
+
+<!-- Page header -->
+<div class="page-header">
+    <h1>My Orders</h1>
+    <p>Track your deliveries and browse your order history.</p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab active" id="tabActive" onclick="switchTab('active')">
+        Active Orders <span class="tab-count" id="countActive">0</span>
+    </button>
+    <button class="tab" id="tabHistory" onclick="switchTab('history')">
+        Order History <span class="tab-count" id="countHistory">0</span>
+    </button>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+    <!-- Skeleton -->
+    <div id="skeleton">
+        <div class="skel-box" style="height:80px;border-radius:16px;margin-bottom:1rem"></div>
+        <div class="skel-box" style="height:80px;border-radius:16px;margin-bottom:1rem"></div>
+        <div class="skel-box" style="height:80px;border-radius:16px"></div>
+    </div>
+
+    <div id="ordersContainer" style="display:none"></div>
+</div>
+
+<script>
+    const BASE  = '/api';
+    const user  = JSON.parse(localStorage.getItem('user') || 'null');
+    const token = localStorage.getItem('token');
+
+    let allOrders   = [];
+    let currentTab  = 'active';
+    const ACTIVE_STATUSES   = ['PENDING', 'CONFIRMED', 'SHIPPED'];
+    const HISTORY_STATUSES  = ['DELIVERED', 'CANCELLED'];
+
+    // ── Init ─────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+        if (user) {
+            document.getElementById('navName').textContent   = user.firstName;
+            document.getElementById('navAvatar').textContent =
+                (user.firstName?.[0]||'') + (user.lastName?.[0]||'');
+        }
+        fetchOrders();
+    });
+
+    // ── Fetch ─────────────────────────────────────────
+    async function fetchOrders() {
+        try {
+            const res  = await fetch(`${BASE}/customer/orders`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            allOrders = await res.json();
+            render();
+        } catch (e) {
+            document.getElementById('skeleton').innerHTML =
+                '<p style="color:var(--muted);text-align:center;padding:3rem">Could not load orders.</p>';
+        }
+    }
+
+    // ── Tab switch ────────────────────────────────────
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tabActive').classList.toggle('active',  tab === 'active');
+        document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+        render();
+    }
+
+    // ── Render ────────────────────────────────────────
+    function render() {
+        document.getElementById('skeleton').style.display      = 'none';
+        document.getElementById('ordersContainer').style.display = 'block';
+
+        const active  = allOrders.filter(o => ACTIVE_STATUSES.includes(o.status));
+        const history = allOrders.filter(o => HISTORY_STATUSES.includes(o.status));
+
+        document.getElementById('countActive').textContent  = active.length;
+        document.getElementById('countHistory').textContent = history.length;
+
+        const list = currentTab === 'active' ? active : history;
+        const container = document.getElementById('ordersContainer');
+
+        if (!list.length) {
+            container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">${currentTab === 'active' ? '📦' : '🕐'}</div>
+          <h3>${currentTab === 'active' ? 'No active orders' : 'No order history yet'}</h3>
+          <p>${currentTab === 'active'
+                ? 'When you place an order it will appear here.'
+                : 'Your completed orders will appear here.'}</p>
+          <a href="store.html" class="shop-btn">Start Shopping →</a>
+        </div>`;
+            return;
+        }
+
+        container.innerHTML = list.map(o => orderCard(o)).join('');
+
+        // Start countdown timers for DELIVERING orders
+        list.filter(o => o.status === 'SHIPPED').forEach(o => startTimer(o));
+    }
+
+    // ── Order card HTML ───────────────────────────────
+    function orderCard(o) {
+        const date     = new Date(o.createdAt).toLocaleDateString('en-US',
+            {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        const items    = o.items || [];
+        const subtotal = items.reduce((s,i) => s + parseFloat(i.subtotal), 0);
+
+        const progressHtml = progressTracker(o.status);
+        const timerHtml = o.status === 'SHIPPED'
+            ? `<span class="delivery-timer" id="timer-${o.id}">⏱ calculating...</span>`
+            : '';
+
+        const itemsHtml = items.map(i => `
+      <div class="order-item">
+        <div class="oi-img">
+          ${i.imageUrl ? `<img src="${i.imageUrl}" alt="${i.productName}"/>` : '🛍️'}
+        </div>
+        <div class="oi-info">
+          <div class="oi-name">${i.productName}</div>
+          <div class="oi-qty">Qty: ${i.quantity}</div>
+        </div>
+        <div class="oi-price">$${parseFloat(i.subtotal).toFixed(2)}</div>
+      </div>`).join('');
+
+        return `
+      <div class="order-card" id="card-${o.id}">
+        <div class="order-head" onclick="toggleCard(${o.id})">
+          <div class="order-head-left">
+            <div>
+              <div class="order-id">Order #${o.id}</div>
+              <div class="order-date">${date}</div>
+            </div>
+            <span class="status-badge status-${o.status}">
+              <span class="status-dot"></span>
+              ${formatStatus(o.status)}
+            </span>
+            ${timerHtml}
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div class="order-total">$${parseFloat(o.totalAmount).toFixed(2)}</div>
+            <span class="chevron">▼</span>
+          </div>
+        </div>
+        <div class="order-body">
+          ${progressHtml}
+          <div class="info-grid">
+            <div class="info-box">
+              <div class="info-label">Shipping Address</div>
+              <div class="info-value">${o.shippingAddress || '—'}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-label">Order Date</div>
+              <div class="info-value">${date}</div>
+            </div>
+            ${o.deliveredAt ? `
+            <div class="info-box">
+              <div class="info-label">Delivered At</div>
+              <div class="info-value">${new Date(o.deliveredAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+            </div>` : ''}
+          </div>
+          <div class="items-title">Items Ordered</div>
+          ${itemsHtml}
+          <div class="order-totals">
+            <div class="total-row"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+            <div class="total-row"><span>Shipping</span><span>Free</span></div>
+            <div class="total-row grand"><span>Total</span><span class="grand-val">$${parseFloat(o.totalAmount).toFixed(2)}</span></div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ── Progress tracker ──────────────────────────────
+    function progressTracker(status) {
+        const steps = [
+            { key:'PENDING',   label:'Order Placed', icon:'📋' },
+            { key:'CONFIRMED', label:'Confirmed',    icon:'✔️'  },
+            { key:'SHIPPED',   label:'On the Way',   icon:'🚚' },
+            { key:'DELIVERED', label:'Delivered',    icon:'✅' },
+        ];
+
+        const order = ['PENDING','CONFIRMED','SHIPPED','DELIVERED'];
+        const idx   = order.indexOf(status);
+
+        const stepsHtml = steps.map((s, i) => {
+            const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+            return `
+        <div class="progress-step ${cls}">
+          <div class="step-dot">${s.icon}</div>
+          <div class="step-label">${s.label}</div>
+        </div>`;
+        }).join('');
+
+        return `<div class="progress-track">${stepsHtml}</div>`;
+    }
+
+    // ── Toggle card open/close ────────────────────────
+    function toggleCard(id) {
+        document.getElementById('card-' + id).classList.toggle('open');
+    }
+
+    // ── Countdown timer for delivering orders ─────────
+    function startTimer(order) {
+        const el = document.getElementById('timer-' + order.id);
+        if (!el) return;
+
+        const createdAt  = new Date(order.createdAt);
+        const deliverAt  = new Date(createdAt.getTime() + 60 * 60 * 1000); // +1 hour
+
+        function tick() {
+            const diff = deliverAt - Date.now();
+            if (diff <= 0) {
+                el.textContent = '⏱ Arriving any moment…';
+                // Refresh orders from server after a few seconds
+                setTimeout(fetchOrders, 5000);
+                return;
+            }
+            const m = Math.floor(diff / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            el.textContent = `⏱ Est. delivery in ${m}m ${s}s`;
+            setTimeout(tick, 1000);
+        }
+        tick();
+    }
+
+    // ── Helpers ───────────────────────────────────────
+    function formatStatus(s) {
+        const map = {
+            PENDING:   'Pending',
+            CONFIRMED: 'Confirmed',
+            SHIPPED:   'On the Way',
+            DELIVERED: 'Delivered',
+            CANCELLED: 'Cancelled'
+        };
+        return map[s] || s;
+    }
+</script>
+</body>
+</html>
