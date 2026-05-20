@@ -32,10 +32,23 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // ── Added fields for delivery tracking ───────────
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
         if (status == null) status = OrderStatus.PENDING;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters & Setters
@@ -54,5 +67,8 @@ public class Order {
     public String getShippingAddress() { return shippingAddress; }
     public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getCreatedAt()  { return createdAt; }
+    public LocalDateTime getUpdatedAt()  { return updatedAt; }
+    public LocalDateTime getDeliveredAt(){ return deliveredAt; }
+    public void setDeliveredAt(LocalDateTime d) { this.deliveredAt = d; }
 }
