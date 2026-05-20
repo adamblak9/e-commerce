@@ -11,7 +11,7 @@ Docker Migration: Complete containerization of ShopEase platform
 - JwtFilter: Public routes properly configured (/api/auth/login, /api/auth/signup)
 
 📦 New Files:
-- Dockerfile: Multi-stage build for Tomcat deployment
+- Dockerfile: Multi-stage build for Tomcat deployment ..
 - docker-compose.yml: Service orchestration with automatic networking
 
 ✅ Benefits:
