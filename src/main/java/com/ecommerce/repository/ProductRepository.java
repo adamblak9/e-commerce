@@ -78,4 +78,13 @@ public class ProductRepository {
                 .getSingleResult();
         return count > 0;
     }
+
+    public long countAll() {
+        return em.createQuery("SELECT COUNT(p) FROM Product p", Long.class).getSingleResult();
+    }
+
+    public long countByStatus(Product.ProductStatus status) {
+        return em.createQuery("SELECT COUNT(p) FROM Product p WHERE p.status = :status", Long.class)
+                .setParameter("status", status).getSingleResult();
+    }
 }

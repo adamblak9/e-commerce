@@ -71,4 +71,35 @@ public class UserRepository {
     public User update(User user) {
         return em.merge(user);
     }
+
+    public java.util.List<User> findAll() {
+        return em.createQuery("SELECT u FROM User u ORDER BY u.createdAt DESC", User.class)
+                .getResultList();
+    }
+
+    public java.util.List<User> findByRole(User.Role role) {
+        return em.createQuery("SELECT u FROM User u WHERE u.role = :role ORDER BY u.createdAt DESC", User.class)
+                .setParameter("role", role)
+                .getResultList();
+    }
+
+    public java.util.List<User> findByStatus(User.Status status) {
+        return em.createQuery("SELECT u FROM User u WHERE u.status = :status ORDER BY u.createdAt DESC", User.class)
+                .setParameter("status", status)
+                .getResultList();
+    }
+
+    public long countAll() {
+        return em.createQuery("SELECT COUNT(u) FROM User u", Long.class).getSingleResult();
+    }
+
+    public long countByRole(User.Role role) {
+        return em.createQuery("SELECT COUNT(u) FROM User u WHERE u.role = :role", Long.class)
+                .setParameter("role", role).getSingleResult();
+    }
+
+    public long countByStatus(User.Status status) {
+        return em.createQuery("SELECT COUNT(u) FROM User u WHERE u.status = :status", Long.class)
+                .setParameter("status", status).getSingleResult();
+    }
 }
