@@ -34,7 +34,7 @@ const Auth = (() => {
         'cart.html'     : 'auth',
         'signup.html'    : 'guest',
         'index.html'   : ['guest', 'auth'],
-        'dashboard.html' : 'auth',
+        'dashboard.html' : ['SELLER', 'ADMIN'],
         'profile.html'   : 'auth',
         'payment.html'   : 'auth',
         'products.html'  : ['ADMIN', 'SELLER'],
@@ -113,7 +113,7 @@ const Auth = (() => {
     function redirectAfterLogin() {
         const user = getUser();
         if (user?.role === 'ADMIN')  { window.location.replace('admin.html');    return; }
-        if (user?.role === 'SELLER') { window.location.replace('products.html'); return; }
+        if (user?.role === 'SELLER') { window.location.replace('dashboard.html'); return; }
         window.location.replace('store.html');
     }
 

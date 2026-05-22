@@ -15,9 +15,18 @@ public abstract class BaseServlet extends HttpServlet {
 
 
     @SuppressWarnings("unchecked")
-    protected Map<String, String> readBody(HttpServletRequest req) throws IOException {
+    protected Map<String, Object> readBodyRaw(HttpServletRequest req) throws IOException {
         String body = req.getReader().lines().collect(Collectors.joining());
         return mapper.readValue(body, Map.class);
+    }
+
+    protected Map<String, String> readBody(HttpServletRequest req) throws IOException {
+        Map<String, Object> raw = readBodyRaw(req);
+        Map<String, String> result = new java.util.HashMap<>();
+        for (Map.Entry<String, Object> entry : raw.entrySet()) {
+            result.put(entry.getKey(), entry.getValue() != null ? String.valueOf(entry.getValue()) : null);
+        }
+        return result;
     }
 
     protected void sendJson(HttpServletResponse res, int status, Object data) throws IOException {

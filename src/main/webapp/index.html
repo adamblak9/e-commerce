@@ -768,11 +768,14 @@
                 <div class="dd-item" onclick="window.location.href='profile.html'">
                     <span class="icon">👤</span> My Profile
                 </div>
-                <div class="dd-item" onclick="window.location.href='orders.html'">
-                    <span class="icon">📦</span> My Orders
+                <div class="dd-item" onclick="window.location.href='Orders.html'">
+                    <span class="icon">🧾</span> My Orders
                 </div>
-                <div class="dd-item" id="dashboardLink" style="display:none" onclick="window.location.href='dashboard.html'">
-                    <span class="icon">⚙️</span> Seller Dashboard
+                <div class="dd-item" id="manageProductsLink" style="display:none" onclick="window.location.href='products.html'">
+                    <span class="icon">📦</span> Manage Products
+                </div>
+                <div class="dd-item" id="adminPanelLink" style="display:none" onclick="window.location.href='admin.html'">
+                    <span class="icon">⚙️</span> Admin Panel
                 </div>
                 <div class="dd-sep"></div>
                 <div class="dd-item logout" onclick="handleLogout()">
@@ -907,8 +910,12 @@
             document.getElementById('ddEmail').textContent = user.email || '';
             const role = user.role || 'CUSTOMER';
             document.getElementById('ddRole').textContent = role.charAt(0) + role.slice(1).toLowerCase();
-            if (role === 'SELLER' || role === 'ADMIN') {
-                document.getElementById('dashboardLink').style.display = 'flex';
+            if (role === 'SELLER') {
+                document.getElementById('manageProductsLink').style.display = 'flex';
+            }
+            if (role === 'ADMIN') {
+                document.getElementById('manageProductsLink').style.display = 'flex';
+                document.getElementById('adminPanelLink').style.display = 'flex';
             }
         } else {
             document.getElementById('guestBtns').style.display = 'flex';
