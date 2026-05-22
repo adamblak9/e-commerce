@@ -1,33 +1,93 @@
 package com.ecommerce.servlet;
 
 import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderItem;
+import com.ecommerce.filter.RoleGuard;
 import com.ecommerce.service.OrderService;
+import com.ecommerce.util.JPAUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@WebServlet("/api/orders")
+/**
+ * POST /api/orders              → create order (any authenticated user)
+ * GET  /api/orders/all          → list all orders with customer name (ADMIN only)
+ * PUT  /api/orders/{id}/status  → update order status (ADMIN only)
+ */
+@WebServlet("/api/orders/*")
 public class OrderServlet extends BaseServlet {
 
     private final OrderService orderService = new OrderService();
 
-    /**
-     * POST /api/orders
-     * Receives JSON from cart.html: { "items": [...], "total": 99.99, "address": "..." }
-     */
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        // Only admin can list all orders
+        if (!RoleGuard.require(req, res, "ADMIN")) return;
+
+        String pathInfo = req.getPathInfo(); // null or "/all"
+
+        if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/all")) {
+            EntityManager em = JPAUtil.getEntityManager();
+            try {
+                List<Order> orders = em.createQuery(
+                                "SELECT o FROM Order o ORDER BY o.createdAt DESC", Order.class)
+                        .getResultList();
+
+                List<Map<String, Object>> result = new ArrayList<>();
+                for (Order o : orders) {
+                    // Look up customer name
+                    String customerName = "User #" + o.getUserId();
+                    try {
+                        Object[] nameRow = (Object[]) em.createQuery(
+                                        "SELECT u.firstName, u.lastName FROM User u WHERE u.id = :uid")
+                                .setParameter("uid", o.getUserId())
+                                .getSingleResult();
+                        if (nameRow != null) {
+                            customerName = (nameRow[0] != null ? nameRow[0] : "") + " " +
+                                    (nameRow[1] != null ? nameRow[1] : "");
+                            customerName = customerName.trim();
+                            if (customerName.isEmpty()) customerName = "User #" + o.getUserId();
+                        }
+                    } catch (Exception ignored) {}
+
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("id",              o.getId());
+                    map.put("userId",          o.getUserId());
+                    map.put("customerName",    customerName);
+                    map.put("totalAmount",     o.getTotalAmount());
+                    map.put("status",          o.getStatus().name());
+                    map.put("shippingAddress", o.getShippingAddress());
+                    map.put("createdAt",       o.getCreatedAt() != null ? o.getCreatedAt().toString() : null);
+                    result.add(map);
+                }
+
+                sendJson(res, 200, result);
+            } finally {
+                em.close();
+            }
+            return;
+        }
+
+        sendError(res, 404, "Unknown endpoint");
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String pathInfo = req.getPathInfo();
+        // Only POST /api/orders (no path segment) creates an order
+        if (pathInfo != null && !pathInfo.equals("/")) {
+            sendError(res, 404, "Not found");
+            return;
+        }
 
-        // 1. Get User ID from Request Attributes
-        // (This was set previously by your JwtFilter/Authentication logic)
         Object userIdAttr = req.getAttribute("userId");
-
         if (userIdAttr == null) {
             sendError(res, 401, "Authentication required. Please log in.");
             return;
@@ -36,20 +96,17 @@ public class OrderServlet extends BaseServlet {
         Long userId = Long.valueOf(userIdAttr.toString());
 
         try {
-            // 2. Read complex JSON body (since it contains a List of items)
-            // We use Map<String, Object> because "items" is a List, not a String
-            Map<String, Object> body = mapper.readValue(req.getReader(), new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> body = mapper.readValue(req.getReader(),
+                    new TypeReference<Map<String, Object>>() {});
 
             if (body == null || !body.containsKey("items") || !body.containsKey("total")) {
                 sendError(res, 400, "Invalid order data: items and total are required.");
                 return;
             }
 
-            // 3. Extract Data
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> cartItems = (List<Map<String, Object>>) body.get("items");
             String address = (String) body.get("address");
-
-            // Handle total amount safely
             BigDecimal totalAmount = new BigDecimal(body.get("total").toString());
 
             if (cartItems.isEmpty()) {
@@ -57,12 +114,8 @@ public class OrderServlet extends BaseServlet {
                 return;
             }
 
-            // 4. Create the Order in the Database via Service
-            // This creates the 'orders' entry AND the 'order_items' entries
             Order order = orderService.createOrder(userId, cartItems, totalAmount, address);
 
-            // 5. Send Success Response
-            // Return the orderId so the frontend can redirect to: payment.html?orderId=XX
             sendJson(res, 201, Map.of(
                     "success", true,
                     "orderId", order.getId(),
@@ -74,6 +127,44 @@ public class OrderServlet extends BaseServlet {
         } catch (Exception e) {
             e.printStackTrace();
             sendError(res, 500, "Server error while processing order: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        if (!RoleGuard.require(req, res, "ADMIN")) return;
+
+        String pathInfo = req.getPathInfo(); // e.g. "/5/status"
+        if (pathInfo == null) { sendError(res, 400, "Missing order ID"); return; }
+
+        String[] parts = pathInfo.split("/"); // ["", "5", "status"]
+        if (parts.length < 3 || !"status".equals(parts[2])) {
+            sendError(res, 400, "Expected: /api/orders/{id}/status");
+            return;
+        }
+
+        try {
+            Long orderId = Long.parseLong(parts[1]);
+            Map<String, String> body = readBody(req);
+            String statusStr = body.get("status");
+            if (statusStr == null) { sendError(res, 400, "status is required"); return; }
+
+            Order.OrderStatus status;
+            try {
+                status = Order.OrderStatus.valueOf(statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                sendError(res, 400, "Invalid status: " + statusStr);
+                return;
+            }
+
+            orderService.updateOrderStatus(orderId, status);
+            sendJson(res, 200, Map.of("message", "Order status updated", "orderId", orderId, "status", status.name()));
+
+        } catch (NumberFormatException e) {
+            sendError(res, 400, "Invalid order ID");
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendError(res, 500, "Error updating order: " + e.getMessage());
         }
     }
 }

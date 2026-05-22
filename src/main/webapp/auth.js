@@ -33,13 +33,14 @@ const Auth = (() => {
         'login.html'     : 'guest',
         'cart.html'     : 'auth',
         'signup.html'    : 'guest',
-         'index.html'   : ['guest', 'auth'],
-        'dashboard.html' : 'auth',
+        'index.html'   : ['guest', 'auth'],
+        'dashboard.html' : ['SELLER', 'ADMIN'],
         'profile.html'   : 'auth',
         'payment.html'   : 'auth',
         'products.html'  : ['ADMIN', 'SELLER'],
         'product.html'   : 'auth',
         'store.html'   : 'auth',
+        'admin.html'     : ['ADMIN'],
     };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -108,9 +109,12 @@ const Auth = (() => {
         return user;
     }
 
-    /** Call after a successful login — goes to the intended page or fallback. */
-    function redirectAfterLogin(fallback = 'dashboard.html') {
-        window.location.replace(popIntended(fallback));
+    /** Call after a successful login — redirects based on role. */
+    function redirectAfterLogin() {
+        const user = getUser();
+        if (user?.role === 'ADMIN')  { window.location.replace('admin.html');    return; }
+        if (user?.role === 'SELLER') { window.location.replace('dashboard.html'); return; }
+        window.location.replace('store.html');
     }
 
     // ── Auto-run based on ROUTE_MAP ───────────────────────────────────────────

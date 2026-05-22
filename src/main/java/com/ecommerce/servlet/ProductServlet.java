@@ -124,11 +124,11 @@ public class ProductServlet extends BaseServlet {
         Map<String, String> body = readBody(req);
 
         String name        = body.get("name");
-        String description = body.get("description");
+        String description = nullIfBlankOrNullString(body.get("description"));
         String priceStr    = body.get("price");
         String stockStr    = body.get("stockQuantity");
         String category    = body.get("category");
-        String imageUrl    = body.get("imageUrl");
+        String imageUrl    = nullIfBlankOrNullString(body.get("imageUrl"));
 
         if (isBlank(name) || isBlank(priceStr) || isBlank(stockStr)) {
             sendError(res, 400, "name, price and stockQuantity are required");
@@ -172,11 +172,11 @@ public class ProductServlet extends BaseServlet {
             Map<String, String> body = readBody(req);
 
             String name        = body.get("name");
-            String description = body.get("description");
+            String description = nullIfBlankOrNullString(body.get("description"));
             String priceStr    = body.get("price");
             String stockStr    = body.get("stockQuantity");
             String category    = body.get("category");
-            String imageUrl    = body.get("imageUrl");
+            String imageUrl    = nullIfBlankOrNullString(body.get("imageUrl"));
             String status      = body.get("status");
 
             BigDecimal price   = priceStr  != null ? new BigDecimal(priceStr)  : null;
@@ -248,6 +248,11 @@ public class ProductServlet extends BaseServlet {
 
     private boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
+    }
+
+    private String nullIfBlankOrNullString(String s) {
+        if (s == null || s.trim().isEmpty() || s.equals("null")) return null;
+        return s;
     }
 
     /**

@@ -86,6 +86,10 @@ public class CartServlet extends BaseServlet {
 
             sendJson(res, 200,
                     cartService.addItem(userId, productId, productName, price, quantity, imageUrl));
+        } catch (IllegalStateException e) {
+            sendError(res, 409, e.getMessage()); // out of stock / limit exceeded
+        } catch (IllegalArgumentException e) {
+            sendError(res, 404, e.getMessage()); // product not found
         } catch (Exception e) {
             sendError(res, 500, "Could not add item: " + e.getMessage());
         }
@@ -115,7 +119,7 @@ public class CartServlet extends BaseServlet {
             String rawBody = req.getReader().lines().collect(Collectors.joining()).trim();
 
             if (rawBody.isEmpty() || rawBody.equals("{}")) {
-                // No body → clear entire cart
+                // Nobody → clear entire cart
                 sendJson(res, 200, cartService.clearCart(userId));
             } else {
                 Map<String, Object> body = mapper.readValue(rawBody,

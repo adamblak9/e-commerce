@@ -2,10 +2,524 @@
 <html lang="en">
 <head>
     <script src="auth.js"></script>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Seller Dashboard — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:       #0d0d0f;
+            --surface:  #18181c;
+            --surface2: #1f1f25;
+            --border:   #2a2a32;
+            --accent:   #6366f1;
+            --accent2:  #818cf8;
+            --accentL:  rgba(99,102,241,0.12);
+            --text:     #f0f0f2;
+            --text2:    #a0a0b0;
+            --muted:    #55555f;
+            --error:    #ef4444;
+            --success:  #22c55e;
+            --warning:  #f59e0b;
+            --info:     #38bdf8;
+            --sidebar-w: 230px;
+        }
+        html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+        a { text-decoration: none; color: inherit; }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; bottom: 0;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            padding: 1.4rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .65rem;
+        }
+        .brand-icon {
+            width: 34px; height: 34px;
+            background: var(--accentL); border: 1px solid var(--accent);
+            border-radius: 9px; display: grid; place-items: center; font-size: .95rem;
+        }
+        .brand-text { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; }
+        .brand-text span { color: var(--accent2); }
+        .brand-badge {
+            margin-left: auto; font-size: .58rem; font-weight: 700; letter-spacing: .07em;
+            background: rgba(245,158,11,.15); color: #fbbf24;
+            border: 1px solid rgba(245,158,11,.3); border-radius: 4px; padding: 2px 6px;
+        }
+        .sidebar-nav { flex: 1; padding: .75rem 0; overflow-y: auto; }
+        .nav-label {
+            font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--muted); padding: .8rem 1.25rem .35rem;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: .7rem;
+            padding: .6rem 1.25rem; font-size: .875rem; color: var(--text2);
+            cursor: pointer; border-left: 2px solid transparent;
+            transition: background .15s, color .15s;
+        }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: var(--accentL); color: var(--accent2); border-left-color: var(--accent); }
+        .nav-item .icon { width: 20px; text-align: center; font-size: .95rem; }
+        .sidebar-footer {
+            padding: .9rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+        .sidebar-user {
+            display: flex; align-items: center; gap: .7rem;
+            padding: .55rem .7rem; border-radius: 8px; cursor: pointer;
+            transition: background .15s;
+        }
+        .sidebar-user:hover { background: var(--surface2); }
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #06b6d4);
+            display: grid; place-items: center;
+            font-size: .72rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .user-name { font-size: .83rem; font-weight: 600; }
+        .user-role { font-size: .68rem; color: var(--muted); }
+
+        /* ── Main ── */
+        .main { margin-left: var(--sidebar-w); flex: 1; }
+        .topbar {
+            height: 58px; background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 2rem; gap: 1rem;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; flex: 1; }
+        .topbar-sub { font-size: .78rem; color: var(--muted); }
+
+        .content { padding: 2rem; }
+
+        /* ── Stat cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 1rem; margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.2rem;
+            transition: border-color .2s;
+        }
+        .stat-card:hover { border-color: var(--accent); }
+        .stat-icon { font-size: 1.4rem; margin-bottom: .6rem; }
+        .stat-label { font-size: .72rem; color: var(--text2); font-weight: 500; letter-spacing: .03em; margin-bottom: .35rem; }
+        .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.9rem; font-weight: 700; line-height: 1; }
+        .stat-sub { font-size: .7rem; color: var(--muted); margin-top: .3rem; }
+        .stat-card.green .stat-value  { color: var(--success); }
+        .stat-card.yellow .stat-value { color: var(--warning); }
+        .stat-card.blue .stat-value   { color: var(--info); }
+        .stat-card.purple .stat-value { color: var(--accent2); }
+
+        /* ── Section header ── */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--surface2); color: var(--text2);
+            font-size: .7rem; font-weight: 600; letter-spacing: .07em;
+            text-transform: uppercase; padding: .75rem 1rem; text-align: left;
+        }
+        td { padding: .75rem 1rem; font-size: .85rem; border-top: 1px solid var(--border); vertical-align: middle; }
+        tr:hover td { background: rgba(255,255,255,.02); }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-block; font-size: .67rem; font-weight: 600;
+            letter-spacing: .04em; padding: 3px 8px; border-radius: 99px;
+            text-transform: uppercase;
+        }
+        .badge-pending   { background: rgba(245,158,11,.12); color: #fbbf24; }
+        .badge-confirmed { background: rgba(34,197,94,.12);  color: #4ade80; }
+        .badge-shipped   { background: rgba(56,189,248,.12); color: #7dd3fc; }
+        .badge-delivered { background: rgba(34,197,94,.2);   color: #86efac; }
+        .badge-cancelled { background: rgba(239,68,68,.12);  color: #f87171; }
+
+        /* ── Collapsible items ── */
+        .order-items { display: none; padding: .5rem 1rem 1rem; background: var(--surface2); }
+        .order-items.open { display: block; }
+        .order-item-row { display: flex; justify-content: space-between; align-items: center; padding: .4rem 0; font-size: .82rem; border-bottom: 1px solid var(--border); }
+        .order-item-row:last-child { border-bottom: none; }
+        .item-name { color: var(--text); }
+        .item-meta { color: var(--muted); font-size: .75rem; }
+        .item-subtotal { color: var(--success); font-weight: 600; }
+
+        /* ── Filter row ── */
+        .filter-row { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .search-bar {
+            display: flex; align-items: center;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: .4rem .75rem; gap: .5rem;
+        }
+        .search-bar input { background: transparent; border: none; outline: none; color: var(--text); font-family: inherit; font-size: .85rem; width: 180px; }
+        .search-bar input::placeholder { color: var(--muted); }
+        .filter-select {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-family: inherit; font-size: .82rem;
+            padding: .42rem .75rem; border-radius: 7px; cursor: pointer; outline: none;
+        }
+        .filter-select:focus { border-color: var(--accent); }
+
+        /* ── Btn ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .45rem .9rem; border-radius: 7px; font-size: .83rem;
+            font-weight: 500; cursor: pointer; border: 1px solid transparent;
+            transition: all .15s; font-family: inherit;
+        }
+        .btn-ghost { background: transparent; color: var(--text2); border-color: var(--border); }
+        .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+        .btn-sm { padding: .3rem .6rem; font-size: .76rem; }
+
+        /* ── Empty / loading ── */
+        .empty-state { text-align: center; padding: 3rem 2rem; color: var(--muted); }
+        .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+        .empty-text { font-size: .88rem; }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-center { display: flex; justify-content: center; align-items: center; padding: 2.5rem; gap: .75rem; color: var(--muted); font-size: .85rem; }
+
+        /* ── Pages ── */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main { margin-left: 0; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
 </head>
 <body>
+<div class="layout">
 
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🏪</div>
+            <div class="brand-text">Shop<span>Ease</span></div>
+            <div class="brand-badge">SELLER</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Overview</div>
+            <div class="nav-item active" data-page="overview">
+                <span class="icon">📊</span> Dashboard
+            </div>
+            <div class="nav-label">Sales</div>
+            <div class="nav-item" data-page="orders">
+                <span class="icon">🧾</span> My Orders
+            </div>
+            <div class="nav-label">Catalogue</div>
+            <div class="nav-item" onclick="window.location.href='products.html'">
+                <span class="icon">📦</span> My Products
+            </div>
+            <div class="nav-label">Store</div>
+            <div class="nav-item" onclick="window.location.href='store.html'">
+                <span class="icon">🛒</span> Go to Store
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user" id="sidebarUser">
+                <div class="user-avatar" id="sidebarAvatar">S</div>
+                <div>
+                    <div class="user-name" id="sidebarName">Seller</div>
+                    <div class="user-role">Seller Account</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <header class="topbar">
+            <div style="flex:1">
+                <div class="topbar-title" id="pageTitle">Dashboard</div>
+                <div class="topbar-sub" id="pageSub">Your sales at a glance</div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- OVERVIEW PAGE -->
+            <div class="page active" id="page-overview">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card green">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="st-revenue">—</div>
+                        <div class="stat-sub">Excl. cancelled orders</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-icon">🧾</div>
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value" id="st-orders">—</div>
+                        <div class="stat-sub">Containing your products</div>
+                    </div>
+                    <div class="stat-card yellow">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-label">Pending Orders</div>
+                        <div class="stat-value" id="st-pending">—</div>
+                        <div class="stat-sub">Awaiting processing</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-label">Active Products</div>
+                        <div class="stat-value" id="st-products">—</div>
+                        <div class="stat-sub" id="st-products-sub">Listed in store</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <div class="section-title">Recent Orders</div>
+                    <button class="btn btn-ghost btn-sm" onclick="navigateTo('orders')">View all →</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Your Revenue</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="recentOrdersBody">
+                        <tr><td colspan="6"><div class="loading-center"><span class="spinner"></span> Loading...</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ORDERS PAGE -->
+            <div class="page" id="page-orders">
+                <div class="filter-row">
+                    <div class="search-bar">
+                        <span>🔍</span>
+                        <input type="text" id="orderSearch" placeholder="Search by order # or customer…" oninput="filterOrders()">
+                    </div>
+                    <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Your Revenue</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="allOrdersBody">
+                        <tr><td colspan="6"><div class="loading-center"><span class="spinner"></span> Loading...</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = '/api';
+    let token = null;
+    let currentUser = null;
+    let allOrders = [];
+
+    // ── Bootstrap ──
+    (function init() {
+        token = localStorage.getItem('token');
+        try { currentUser = JSON.parse(localStorage.getItem('user')); } catch {}
+
+        if (!token || !currentUser) {
+            window.location.replace('login.html');
+            return;
+        }
+        if (currentUser.role !== 'SELLER' && currentUser.role !== 'ADMIN') {
+            window.location.replace('403.html');
+            return;
+        }
+
+        const first = currentUser.firstName || '';
+        const last  = currentUser.lastName  || '';
+        const initials = ((first[0] || '') + (last[0] || '')).toUpperCase() || 'S';
+        document.getElementById('sidebarAvatar').textContent = initials;
+        document.getElementById('sidebarName').textContent   = (first + ' ' + last).trim() || currentUser.username;
+        document.getElementById('pageSub').textContent = 'Welcome back, ' + (first || 'Seller');
+
+        document.getElementById('sidebarUser').addEventListener('click', () => {
+            if (confirm('Sign out?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.replace('login.html');
+            }
+        });
+
+        loadStats();
+        loadOrders();
+    })();
+
+    // ── Navigation ──
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', () => navigateTo(item.dataset.page));
+    });
+
+    function navigateTo(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+        const titles = { overview: 'Dashboard', orders: 'My Orders' };
+        document.getElementById('pageTitle').textContent = titles[page] || page;
+    }
+
+    // ── API helper ──
+    async function apiFetch(path, opts = {}) {
+        const res = await fetch(API + path, {
+            ...opts,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                ...(opts.headers || {})
+            }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+    }
+
+    // ── Load stats ──
+    async function loadStats() {
+        try {
+            const s = await apiFetch('/seller/stats');
+            document.getElementById('st-revenue').textContent  = '$' + parseFloat(s.totalRevenue || 0).toFixed(2);
+            document.getElementById('st-orders').textContent   = s.totalOrders  ?? 0;
+            document.getElementById('st-pending').textContent  = s.pendingOrders ?? 0;
+            document.getElementById('st-products').textContent = s.activeProducts ?? 0;
+            document.getElementById('st-products-sub').textContent = (s.totalProducts ?? 0) + ' total listed';
+        } catch (e) {
+            console.error('Stats error:', e);
+        }
+    }
+
+    // ── Load orders ──
+    async function loadOrders() {
+        try {
+            allOrders = await apiFetch('/seller/orders');
+            renderRecentOrders(allOrders.slice(0, 5));
+            renderAllOrders(allOrders);
+        } catch (e) {
+            const msg = `<tr><td colspan="6" style="color:var(--error);padding:1rem">${esc(e.message)}</td></tr>`;
+            document.getElementById('recentOrdersBody').innerHTML = msg;
+            document.getElementById('allOrdersBody').innerHTML    = msg;
+        }
+    }
+
+    function renderRecentOrders(orders) {
+        const tbody = document.getElementById('recentOrdersBody');
+        if (!orders.length) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No orders yet. Share your products!</div></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = orders.map(o => orderRow(o)).join('');
+    }
+
+    function renderAllOrders(orders) {
+        const tbody = document.getElementById('allOrdersBody');
+        if (!orders.length) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No orders found.</div></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = orders.map(o => orderRow(o) + itemsRow(o)).join('');
+    }
+
+    function orderRow(o) {
+        const statusCls = o.status.toLowerCase();
+        return `
+        <tr style="cursor:pointer" onclick="toggleItems(${o.id})">
+            <td style="color:var(--muted);font-size:.78rem">#${o.id}</td>
+            <td><strong>${esc(o.customerName)}</strong></td>
+            <td style="color:var(--success);font-weight:600">$${parseFloat(o.sellerTotal).toFixed(2)}</td>
+            <td><span class="badge badge-${statusCls}">${o.status}</span></td>
+            <td style="color:var(--muted);font-size:.78rem">${fmtDate(o.createdAt)}</td>
+            <td style="color:var(--muted);font-size:.8rem" id="arrow-${o.id}">▸</td>
+        </tr>`;
+    }
+
+    function itemsRow(o) {
+        const items = (o.items || []).map(i =>
+            `<div class="order-item-row">
+                <div>
+                    <div class="item-name">${esc(i.productName)}</div>
+                    <div class="item-meta">Qty: ${i.quantity} × $${parseFloat(i.price).toFixed(2)}</div>
+                </div>
+                <div class="item-subtotal">$${parseFloat(i.subtotal).toFixed(2)}</div>
+            </div>`
+        ).join('');
+        return `<tr id="items-${o.id}"><td colspan="6" style="padding:0">
+            <div class="order-items" id="items-content-${o.id}">${items}</div>
+        </td></tr>`;
+    }
+
+    function toggleItems(id) {
+        const el    = document.getElementById('items-content-' + id);
+        const arrow = document.getElementById('arrow-' + id);
+        if (!el) return;
+        el.classList.toggle('open');
+        if (arrow) arrow.textContent = el.classList.contains('open') ? '▾' : '▸';
+    }
+
+    function filterOrders() {
+        const q      = document.getElementById('orderSearch').value.toLowerCase();
+        const status = document.getElementById('orderStatusFilter').value;
+        const filtered = allOrders.filter(o =>
+            (!q      || String(o.id).includes(q) || (o.customerName||'').toLowerCase().includes(q)) &&
+            (!status || o.status === status)
+        );
+        renderAllOrders(filtered);
+    }
+
+    // ── Helpers ──
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        return new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+</script>
 </body>
 </html>

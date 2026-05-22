@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="auth.js"></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard — ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0d0d0f;
+            --surface:   #18181c;
+            --surface2:  #1f1f25;
+            --border:    #2a2a32;
+            --accent:    #6366f1;
+            --accent2:   #818cf8;
+            --accentL:   rgba(99,102,241,0.12);
+            --text:      #f0f0f2;
+            --text2:     #a0a0b0;
+            --muted:     #55555f;
+            --error:     #ef4444;
+            --success:   #22c55e;
+            --warning:   #f59e0b;
+            --info:      #38bdf8;
+            --sidebar-w: 240px;
+        }
+
+        html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ════════════════════════════════
+           LAYOUT
+        ════════════════════════════════ */
+        .layout { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            transition: transform .25s ease;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .brand-icon {
+            width: 36px; height: 36px;
+            background: var(--accentL);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            display: grid; place-items: center;
+            font-size: 1rem;
+        }
+
+        .brand-text { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; }
+        .brand-text span { color: var(--accent2); }
+        .brand-badge {
+            font-size: .6rem; font-weight: 600; letter-spacing: .06em;
+            background: var(--accentL); color: var(--accent2);
+            border: 1px solid var(--accent); border-radius: 4px;
+            padding: 2px 6px; margin-left: auto;
+        }
+
+        .sidebar-nav { padding: 1rem 0; flex: 1; overflow-y: auto; }
+
+        .nav-section-label {
+            font-size: .65rem; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--muted);
+            padding: .75rem 1.25rem .4rem;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .65rem 1.25rem;
+            border-radius: 0;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+            font-size: .9rem; color: var(--text2);
+            border-left: 2px solid transparent;
+        }
+
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active {
+            background: var(--accentL);
+            color: var(--accent2);
+            border-left-color: var(--accent);
+        }
+
+        .nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+        .nav-badge {
+            margin-left: auto;
+            font-size: .65rem; font-weight: 700;
+            background: var(--accent); color: #fff;
+            border-radius: 99px; padding: 2px 7px;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-user {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .6rem .75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .sidebar-user:hover { background: var(--surface2); }
+
+        .user-avatar {
+            width: 32px; height: 32px;
+            background: var(--accentL);
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: .75rem; font-weight: 700;
+            color: var(--accent2);
+            flex-shrink: 0;
+        }
+
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: .7rem; color: var(--muted); }
+
+        /* ── Main ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 60px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-title { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700; flex: 1; }
+        .topbar-subtitle { font-size: .8rem; color: var(--muted); }
+
+        .topbar-actions { display: flex; align-items: center; gap: .75rem; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .5rem 1rem;
+            border-radius: 7px;
+            font-size: .85rem; font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all .15s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--accent2); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text2);
+            border-color: var(--border);
+        }
+        .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+        .btn-danger {
+            background: rgba(239,68,68,.12);
+            color: var(--error);
+            border-color: rgba(239,68,68,.2);
+        }
+        .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+        .btn-sm { padding: .35rem .7rem; font-size: .78rem; }
+        .btn-xs { padding: .2rem .5rem; font-size: .72rem; }
+
+        /* ── Page content ── */
+        .page { display: none; padding: 2rem; animation: fadeIn .25s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ── Stat cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: border-color .2s;
+        }
+        .stat-card:hover { border-color: var(--accent); }
+
+        .stat-label { font-size: .75rem; color: var(--text2); font-weight: 500; letter-spacing: .03em; margin-bottom: .5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; font-family: 'Fraunces', serif; line-height: 1; }
+        .stat-sub { font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+
+        .stat-card.accent  .stat-value { color: var(--accent2); }
+        .stat-card.success .stat-value { color: var(--success); }
+        .stat-card.warning .stat-value { color: var(--warning); }
+        .stat-card.error   .stat-value { color: var(--error); }
+        .stat-card.info    .stat-value { color: var(--info); }
+
+        /* ── Section title ── */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .section-title { font-size: 1rem; font-weight: 600; font-family: 'Fraunces', serif; }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--surface2);
+            color: var(--text2);
+            font-size: .72rem; font-weight: 600; letter-spacing: .06em;
+            text-transform: uppercase;
+            padding: .75rem 1rem;
+            text-align: left;
+        }
+        td {
+            padding: .75rem 1rem;
+            font-size: .85rem;
+            border-top: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tr:hover td { background: rgba(255,255,255,.02); }
+
+        /* ── Badge / pill ── */
+        .badge {
+            display: inline-block;
+            font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+            padding: 3px 8px; border-radius: 99px;
+            text-transform: uppercase;
+        }
+
+        .badge-active   { background: rgba(34,197,94,.12);   color: #4ade80; }
+        .badge-inactive { background: rgba(156,163,175,.1);  color: #9ca3af; }
+        .badge-banned   { background: rgba(239,68,68,.12);   color: #f87171; }
+        .badge-admin    { background: rgba(99,102,241,.15);  color: #a5b4fc; }
+        .badge-seller   { background: rgba(245,158,11,.12);  color: #fbbf24; }
+        .badge-customer { background: rgba(56,189,248,.1);   color: #7dd3fc; }
+        .badge-on       { background: rgba(34,197,94,.12);   color: #4ade80; }
+        .badge-off      { background: rgba(156,163,175,.1);  color: #9ca3af; }
+        .badge-pending  { background: rgba(245,158,11,.12);  color: #fbbf24; }
+
+        /* ── Search bar ── */
+        .search-bar {
+            display: flex; align-items: center;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .45rem .75rem;
+            gap: .5rem;
+            max-width: 320px;
+        }
+        .search-bar input {
+            background: transparent; border: none; outline: none;
+            color: var(--text); font-family: inherit; font-size: .85rem; flex: 1;
+        }
+        .search-bar input::placeholder { color: var(--muted); }
+
+        /* ── Filter row ── */
+        .filter-row { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .filter-select {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-family: inherit; font-size: .83rem;
+            padding: .45rem .75rem; border-radius: 7px; cursor: pointer; outline: none;
+        }
+        .filter-select:focus { border-color: var(--accent); }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,.6);
+            backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%; max-width: 480px;
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: none; } }
+
+        .modal-title { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: .8rem; font-weight: 500; color: var(--text2); margin-bottom: .4rem; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-family: inherit; font-size: .9rem;
+            padding: .65rem .85rem; border-radius: 8px; outline: none;
+            transition: border-color .15s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+        .form-textarea { resize: vertical; min-height: 80px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+        .modal-footer { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+        /* ── Toast ── */
+        #toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: .5rem;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .75rem 1rem;
+            font-size: .85rem;
+            display: flex; align-items: center; gap: .6rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+            animation: toastIn .25s ease;
+            max-width: 320px;
+        }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+        .toast.success { border-color: rgba(34,197,94,.3); }
+        .toast.error   { border-color: rgba(239,68,68,.3); }
+        .toast.info    { border-color: rgba(99,102,241,.3); }
+
+        /* ── Loading spinner ── */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-center { display: flex; justify-content: center; padding: 3rem; }
+
+        /* ── Empty state ── */
+        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty-state p { font-size: .9rem; }
+
+        /* ── Mobile sidebar toggle ── */
+        .sidebar-toggle {
+            display: none;
+            background: none; border: none;
+            color: var(--text); cursor: pointer; font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: none; }
+            .main { margin-left: 0; }
+            .sidebar-toggle { display: block; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- ══════════════════════════════════════
+         SIDEBAR
+    ══════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🛒</div>
+            <div class="brand-text">Shop<span>Ease</span></div>
+            <div class="brand-badge">ADMIN</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Overview</div>
+            <div class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span> Dashboard
+            </div>
+
+            <div class="nav-section-label">Management</div>
+            <div class="nav-item" data-page="users">
+                <span class="nav-icon">👥</span> Users
+                <span class="nav-badge" id="navUserCount">—</span>
+            </div>
+            <div class="nav-item" data-page="categories">
+                <span class="nav-icon">🏷️</span> Categories
+                <span class="nav-badge" id="navCatCount">—</span>
+            </div>
+            <div class="nav-item" data-page="products">
+                <span class="nav-icon">📦</span> Products
+            </div>
+            <div class="nav-item" data-page="orders">
+                <span class="nav-icon">🧾</span> Orders
+            </div>
+
+            <div class="nav-section-label">Store</div>
+            <div class="nav-item" id="goToStore">
+                <span class="nav-icon">🏪</span> Go to Store
+            </div>
+            <div class="nav-item" onclick="window.location.href='products.html'">
+                <span class="nav-icon">📦</span> Seller Products View
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user" id="sidebarUser">
+                <div class="user-avatar" id="sidebarAvatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <span style="font-size:.8rem;color:var(--muted)">⎋</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ══════════════════════════════════════
+         MAIN
+    ══════════════════════════════════════ -->
+    <div class="main">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+            <div>
+                <div class="topbar-title" id="pageTitle">Dashboard</div>
+                <div class="topbar-subtitle" id="pageSubtitle">Welcome back, Admin</div>
+            </div>
+            <div class="topbar-actions" id="topbarActions"></div>
+        </header>
+
+        <!-- ─── DASHBOARD PAGE ─── -->
+        <div class="page active" id="page-dashboard">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card accent"><div class="stat-label">Total Users</div><div class="stat-value" id="st-users">—</div><div class="stat-sub">Registered accounts</div></div>
+                <div class="stat-card info"><div class="stat-label">Customers</div><div class="stat-value" id="st-customers">—</div><div class="stat-sub">Active shoppers</div></div>
+                <div class="stat-card warning"><div class="stat-label">Sellers</div><div class="stat-value" id="st-sellers">—</div><div class="stat-sub">Listed vendors</div></div>
+                <div class="stat-card success"><div class="stat-label">Total Products</div><div class="stat-value" id="st-products">—</div><div class="stat-sub">In catalog</div></div>
+                <div class="stat-card success"><div class="stat-label">Total Orders</div><div class="stat-value" id="st-orders">—</div><div class="stat-sub">All time</div></div>
+                <div class="stat-card success"><div class="stat-label">Revenue</div><div class="stat-value" id="st-revenue">—</div><div class="stat-sub">Excl. cancelled</div></div>
+                <div class="stat-card warning"><div class="stat-label">Pending Orders</div><div class="stat-value" id="st-pending">—</div><div class="stat-sub">Awaiting action</div></div>
+                <div class="stat-card error"><div class="stat-label">Banned Users</div><div class="stat-value" id="st-banned">—</div><div class="stat-sub">Suspended accounts</div></div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">Recent Users</div>
+                <button class="btn btn-ghost btn-sm" onclick="navigateTo('users')">View all →</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+                    <tbody id="recentUsersBody"><tr><td colspan="5"><div class="loading-center"><span class="spinner"></span></div></td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ─── USERS PAGE ─── -->
+        <div class="page" id="page-users">
+            <div class="filter-row">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" id="userSearch" placeholder="Search users…" oninput="filterUsers()">
+                </div>
+                <select class="filter-select" id="userRoleFilter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="SELLER">Seller</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+                <select class="filter-select" id="userStatusFilter" onchange="filterUsers()">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="BANNED">Banned</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name / Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                    <tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ─── CATEGORIES PAGE ─── -->
+        <div class="page" id="page-categories">
+            <div class="filter-row">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" id="catSearch" placeholder="Search categories…" oninput="filterCategories()">
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="catsBody">
+                    <tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ─── PRODUCTS PAGE ─── -->
+        <div class="page" id="page-products">
+            <div class="filter-row">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" id="prodSearch" placeholder="Search products…" oninput="filterProducts()">
+                </div>
+                <select class="filter-select" id="prodStatusFilter" onchange="filterProducts()">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="OUT_OF_STOCK">Out of Stock</option>
+                </select>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="prodsBody">
+                    <tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ─── ORDERS PAGE ─── -->
+        <div class="page" id="page-orders">
+            <div class="filter-row">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" id="orderSearch" placeholder="Search orders…" oninput="filterOrders()">
+                </div>
+                <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                    <tr><td colspan="6"><div class="loading-center"><span class="spinner"></span></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="editUserModal">
+    <div class="modal">
+        <div class="modal-title">Edit User</div>
+        <input type="hidden" id="editUserId">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-select" id="editUserRole">
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="SELLER">Seller</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="editUserStatus">
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="BANNED">Banned</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Reset Password (leave blank to keep current)</label>
+            <input type="password" class="form-input" id="editUserPassword" placeholder="New password (min. 8 chars)">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('editUserModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveUserEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="catModal">
+    <div class="modal">
+        <div class="modal-title" id="catModalTitle">Add Category</div>
+        <input type="hidden" id="catId">
+        <div class="form-group">
+            <label class="form-label">Name *</label>
+            <input type="text" class="form-input" id="catName" placeholder="e.g. Electronics">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Icon (emoji)</label>
+                <input type="text" class="form-input" id="catIcon" placeholder="💻">
+            </div>
+            <div class="form-group" id="catActiveGroup" style="display:none">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="catActive">
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" id="catDesc" placeholder="Short description…"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('catModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCat()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="max-width:380px;text-align:center">
+        <div class="modal-title" id="confirmTitle">Are you sure?</div>
+        <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.5rem" id="confirmMsg"></p>
+        <div class="modal-footer" style="justify-content:center">
+            <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+            <button class="btn btn-danger" id="confirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════
+     SCRIPT
+══════════════════════════════════════ -->
+<script>
+    const API = '/api';
+    let token = null;
+    let currentUser = null;
+
+    // ────────────────────────────────
+    // Auth bootstrap
+    // ────────────────────────────────
+    (function init() {
+        token = localStorage.getItem('token');
+        try { currentUser = JSON.parse(localStorage.getItem('user')); } catch {}
+
+        if (!token || !currentUser || currentUser.role !== 'ADMIN') {
+            window.location.replace('login.html');
+            return;
+        }
+
+        // Set sidebar user info
+        const first = currentUser.firstName || '';
+        const last  = currentUser.lastName  || '';
+        document.getElementById('sidebarAvatar').textContent = (first[0]||'')+(last[0]||'');
+        document.getElementById('sidebarName').textContent   = first + ' ' + last;
+        document.getElementById('pageSubtitle').textContent  = 'Welcome back, ' + first;
+
+        loadDashboard();
+    })();
+
+    // ────────────────────────────────
+    // Navigation
+    // ────────────────────────────────
+    const pageTitles = {
+        dashboard: ['Dashboard', 'Overview of your store'],
+        users:     ['User Management', 'View and manage all accounts'],
+        categories:['Categories', 'Manage product categories'],
+        products:  ['Products', 'Browse and moderate all products'],
+        orders:    ['Orders', 'Monitor all customer orders'],
+    };
+
+    function navigateTo(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+        const [title, sub] = pageTitles[page] || [page, ''];
+        document.getElementById('pageTitle').textContent    = title;
+        document.getElementById('pageSubtitle').textContent = sub;
+
+        renderTopbarActions(page);
+
+        if (page === 'users')      loadUsers();
+        if (page === 'categories') loadCategories();
+        if (page === 'products')   loadProducts();
+        if (page === 'orders')     loadOrders();
+    }
+
+    function renderTopbarActions(page) {
+        const el = document.getElementById('topbarActions');
+        el.innerHTML = '';
+        if (page === 'categories') {
+            el.innerHTML = `<button class="btn btn-primary" onclick="openAddCat()">+ Add Category</button>`;
+        }
+        if (page === 'products') {
+            el.innerHTML = `<button class="btn btn-ghost" onclick="window.location.href='products.html'" style="font-size:.8rem">📦 Seller Product View</button>`;
+        }
+    }
+
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', () => navigateTo(item.dataset.page));
+    });
+
+    document.getElementById('goToStore').addEventListener('click', () => {
+        window.location.href = 'store.html';
+    });
+
+    document.getElementById('sidebarUser').addEventListener('click', () => {
+        if (confirm('Sign out?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.replace('login.html');
+        }
+    });
+
+    // Mobile sidebar
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // ────────────────────────────────
+    // API helper
+    // ────────────────────────────────
+    async function apiFetch(path, opts = {}) {
+        const res = await fetch(API + path, {
+            ...opts,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                ...(opts.headers || {}),
+            }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+    }
+
+    // ────────────────────────────────
+    // Toast
+    // ────────────────────────────────
+    function toast(msg, type = 'info') {
+        const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `<span>${icons[type]||'•'}</span><span>${msg}</span>`;
+        document.getElementById('toast-container').appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+    }
+
+    // ────────────────────────────────
+    // Modal helpers
+    // ────────────────────────────────
+    function openModal(id)  { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function confirm2(title, msg, onConfirm) {
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMsg').textContent   = msg;
+        document.getElementById('confirmBtn').onclick = () => { closeModal('confirmModal'); onConfirm(); };
+        openModal('confirmModal');
+    }
+
+    // ────────────────────────────────
+    // Dashboard
+    // ────────────────────────────────
+    async function loadDashboard() {
+        try {
+            const stats = await apiFetch('/admin/stats');
+
+            document.getElementById('st-users').textContent    = stats.totalUsers    ?? 0;
+            document.getElementById('st-customers').textContent= stats.totalCustomers?? 0;
+            document.getElementById('st-sellers').textContent  = stats.totalSellers  ?? 0;
+            document.getElementById('st-products').textContent = stats.totalProducts ?? 0;
+            document.getElementById('st-orders').textContent   = stats.totalOrders   ?? 0;
+            document.getElementById('st-pending').textContent  = stats.pendingOrders ?? 0;
+            document.getElementById('st-banned').textContent   = stats.bannedUsers   ?? 0;
+            document.getElementById('st-revenue').textContent  = '$' + (parseFloat(stats.totalRevenue || 0)).toFixed(2);
+
+            document.getElementById('navUserCount').textContent = stats.totalUsers ?? '';
+
+            const recent = stats.recentUsers || [];
+            const tbody = document.getElementById('recentUsersBody');
+            if (!recent.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No users yet</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = recent.map(u => `
+                <tr>
+                    <td><strong>${escHtml(u.fullName)}</strong><br><small style="color:var(--muted)">@${escHtml(u.username)}</small></td>
+                    <td style="color:var(--text2)">${escHtml(u.email)}</td>
+                    <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td>
+                    <td><span class="badge badge-${u.status.toLowerCase()}">${u.status}</span></td>
+                    <td style="color:var(--muted);font-size:.78rem">${fmtDate(u.createdAt)}</td>
+                </tr>`).join('');
+        } catch (e) {
+            toast('Failed to load dashboard stats: ' + e.message, 'error');
+        }
+    }
+
+    // ────────────────────────────────
+    // Users
+    // ────────────────────────────────
+    let allUsers = [];
+
+    async function loadUsers() {
+        const tbody = document.getElementById('usersBody');
+        tbody.innerHTML = `<tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>`;
+        try {
+            allUsers = await apiFetch('/admin/users');
+            document.getElementById('navUserCount').textContent = allUsers.length;
+            renderUsers(allUsers);
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--error);padding:1rem">${e.message}</td></tr>`;
+        }
+    }
+
+    function renderUsers(users) {
+        const tbody = document.getElementById('usersBody');
+        if (!users.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👤</div><p>No users found</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td style="color:var(--muted);font-size:.78rem">#${u.id}</td>
+                <td>
+                    <div style="font-weight:600">${escHtml(u.fullName)}</div>
+                    <div style="font-size:.75rem;color:var(--muted)">@${escHtml(u.username)}</div>
+                </td>
+                <td style="color:var(--text2)">${escHtml(u.email)}</td>
+                <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td>
+                <td><span class="badge badge-${u.status.toLowerCase()}">${u.status}</span></td>
+                <td style="color:var(--muted);font-size:.78rem">${fmtDate(u.createdAt)}</td>
+                <td>
+                    <div style="display:flex;gap:.4rem">
+                        <button class="btn btn-ghost btn-xs" onclick='openEditUser(${JSON.stringify(u)})'>Edit</button>
+                        <button class="btn btn-danger btn-xs" onclick="deactivateUser(${u.id},'${escHtml(u.fullName)}')">Ban</button>
+                    </div>
+                </td>
+            </tr>`).join('');
+    }
+
+    function filterUsers() {
+        const q      = document.getElementById('userSearch').value.toLowerCase();
+        const role   = document.getElementById('userRoleFilter').value;
+        const status = document.getElementById('userStatusFilter').value;
+        renderUsers(allUsers.filter(u =>
+            (!q      || u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)) &&
+            (!role   || u.role === role) &&
+            (!status || u.status === status)
+        ));
+    }
+
+    function openEditUser(u) {
+        document.getElementById('editUserId').value     = u.id;
+        document.getElementById('editUserRole').value   = u.role;
+        document.getElementById('editUserStatus').value = u.status;
+        document.getElementById('editUserPassword').value = '';
+        openModal('editUserModal');
+    }
+
+    async function saveUserEdit() {
+        const id       = document.getElementById('editUserId').value;
+        const role     = document.getElementById('editUserRole').value;
+        const status   = document.getElementById('editUserStatus').value;
+        const password = document.getElementById('editUserPassword').value;
+
+        try {
+            await apiFetch(`/admin/users/${id}/role`,   { method: 'PUT', body: JSON.stringify({ role }) });
+            await apiFetch(`/admin/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+            if (password.trim()) {
+                await apiFetch(`/admin/users/${id}/reset-password`, { method: 'PUT', body: JSON.stringify({ password }) });
+            }
+            closeModal('editUserModal');
+            toast('User updated successfully', 'success');
+            loadUsers();
+        } catch(e) {
+            toast(e.message, 'error');
+        }
+    }
+
+    function deactivateUser(id, name) {
+        confirm2('Deactivate User', `Deactivate "${name}"? They won't be able to log in.`, async () => {
+            try {
+                await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+                toast('User deactivated', 'success');
+                loadUsers();
+            } catch(e) { toast(e.message, 'error'); }
+        });
+    }
+
+    // ────────────────────────────────
+    // Categories
+    // ────────────────────────────────
+    let allCats = [];
+
+    async function loadCategories() {
+        const tbody = document.getElementById('catsBody');
+        tbody.innerHTML = `<tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>`;
+        try {
+            allCats = await apiFetch('/categories');
+            document.getElementById('navCatCount').textContent = allCats.length;
+            renderCats(allCats);
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--error);padding:1rem">${e.message}</td></tr>`;
+        }
+    }
+
+    function renderCats(cats) {
+        const tbody = document.getElementById('catsBody');
+        if (!cats.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🏷️</div><p>No categories yet. Add your first!</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = cats.map(c => `
+            <tr>
+                <td style="color:var(--muted);font-size:.78rem">#${c.id}</td>
+                <td style="font-size:1.3rem;text-align:center">${c.icon || '📦'}</td>
+                <td><strong>${escHtml(c.name)}</strong></td>
+                <td style="color:var(--muted);font-family:monospace;font-size:.78rem">${escHtml(c.slug)}</td>
+                <td style="color:var(--text2);font-size:.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.description || '—')}</td>
+                <td><span class="badge badge-${c.active ? 'on' : 'off'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+                <td>
+                    <div style="display:flex;gap:.4rem">
+                        <button class="btn btn-ghost btn-xs" onclick='openEditCat(${JSON.stringify(c)})'>Edit</button>
+                        <button class="btn btn-danger btn-xs" onclick="deleteCat(${c.id},'${escHtml(c.name)}')">Delete</button>
+                    </div>
+                </td>
+            </tr>`).join('');
+    }
+
+    function filterCategories() {
+        const q = document.getElementById('catSearch').value.toLowerCase();
+        renderCats(allCats.filter(c =>
+            !q || c.name.toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q)
+        ));
+    }
+
+    function openAddCat() {
+        document.getElementById('catModalTitle').textContent = 'Add Category';
+        document.getElementById('catId').value   = '';
+        document.getElementById('catName').value  = '';
+        document.getElementById('catIcon').value  = '';
+        document.getElementById('catDesc').value  = '';
+        document.getElementById('catActiveGroup').style.display = 'none';
+        openModal('catModal');
+    }
+
+    function openEditCat(c) {
+        document.getElementById('catModalTitle').textContent = 'Edit Category';
+        document.getElementById('catId').value    = c.id;
+        document.getElementById('catName').value   = c.name;
+        document.getElementById('catIcon').value   = c.icon || '';
+        document.getElementById('catDesc').value   = c.description || '';
+        document.getElementById('catActive').value = String(c.active);
+        document.getElementById('catActiveGroup').style.display = 'block';
+        openModal('catModal');
+    }
+
+    async function saveCat() {
+        const id   = document.getElementById('catId').value;
+        const name = document.getElementById('catName').value.trim();
+        const icon = document.getElementById('catIcon').value.trim();
+        const desc = document.getElementById('catDesc').value.trim();
+        const active = document.getElementById('catActive').value;
+
+        if (!name) { toast('Category name is required', 'error'); return; }
+
+        try {
+            if (id) {
+                await apiFetch(`/categories/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, icon, description: desc, active })
+                });
+                toast('Category updated', 'success');
+            } else {
+                await apiFetch('/categories', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, icon, description: desc })
+                });
+                toast('Category created', 'success');
+            }
+            closeModal('catModal');
+            loadCategories();
+        } catch(e) { toast(e.message, 'error'); }
+    }
+
+    function deleteCat(id, name) {
+        confirm2('Delete Category', `Delete "${name}"? This cannot be undone.`, async () => {
+            try {
+                await apiFetch(`/categories/${id}`, { method: 'DELETE' });
+                toast('Category deleted', 'success');
+                loadCategories();
+            } catch(e) { toast(e.message, 'error'); }
+        });
+    }
+
+    // ────────────────────────────────
+    // Products (read-only view with status toggle)
+    // ────────────────────────────────
+    let allProds = [];
+
+    async function loadProducts() {
+        const tbody = document.getElementById('prodsBody');
+        tbody.innerHTML = `<tr><td colspan="7"><div class="loading-center"><span class="spinner"></span></div></td></tr>`;
+        try {
+            allProds = await apiFetch('/products');
+            renderProds(allProds);
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--error);padding:1rem">${e.message}</td></tr>`;
+        }
+    }
+
+    function renderProds(prods) {
+        const tbody = document.getElementById('prodsBody');
+        if (!prods.length) {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>No products found</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = prods.map(p => `
+            <tr>
+                <td style="color:var(--muted);font-size:.78rem">#${p.id}</td>
+                <td><strong>${escHtml(p.name)}</strong></td>
+                <td style="color:var(--text2)">${escHtml(p.category || '—')}</td>
+                <td>$${parseFloat(p.price).toFixed(2)}</td>
+                <td>${p.stockQuantity}</td>
+                <td><span class="badge badge-${statusClass(p.status)}">${p.status}</span></td>
+                <td>
+                    <button class="btn btn-danger btn-xs" onclick="deactivateProduct(${p.id},'${escHtml(p.name)}')">Deactivate</button>
+                </td>
+            </tr>`).join('');
+    }
+
+    function filterProducts() {
+        const q      = document.getElementById('prodSearch').value.toLowerCase();
+        const status = document.getElementById('prodStatusFilter').value;
+        renderProds(allProds.filter(p =>
+            (!q      || p.name.toLowerCase().includes(q) || (p.category||'').toLowerCase().includes(q)) &&
+            (!status || p.status === status)
+        ));
+    }
+
+    function deactivateProduct(id, name) {
+        confirm2('Deactivate Product', `Set "${name}" to INACTIVE?`, async () => {
+            try {
+                await apiFetch(`/products/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: 'INACTIVE' })
+                });
+                toast('Product deactivated', 'success');
+                loadProducts();
+            } catch(e) { toast(e.message, 'error'); }
+        });
+    }
+
+    // ────────────────────────────────
+    // Orders
+    // ────────────────────────────────
+    let allOrders = [];
+
+    async function loadOrders() {
+        const tbody = document.getElementById('ordersBody');
+        tbody.innerHTML = `<tr><td colspan="6"><div class="loading-center"><span class="spinner"></span></div></td></tr>`;
+        try {
+            // Use CustomerOrderServlet which lists orders per user —
+            // for admin we just call the general orders endpoint
+            const res = await fetch(API + '/orders/all', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) {
+                // Fallback: show empty state gracefully
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🧾</div><p>Order list endpoint not yet connected.<br>Backend route <code>/api/orders/all</code> needs to be wired up.</p></div></td></tr>`;
+                return;
+            }
+            allOrders = await res.json();
+            renderOrders(allOrders);
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🧾</div><p>${e.message}</p></div></td></tr>`;
+        }
+    }
+
+    function renderOrders(orders) {
+        const tbody = document.getElementById('ordersBody');
+        if (!orders.length) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🧾</div><p>No orders yet</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = orders.map(o => `
+            <tr>
+                <td style="color:var(--muted);font-size:.78rem">#${o.id}</td>
+                <td>${escHtml(o.customerName || 'User #' + o.userId)}</td>
+                <td>$${parseFloat(o.totalAmount).toFixed(2)}</td>
+                <td><span class="badge badge-${statusClass(o.status)}">${o.status}</span></td>
+                <td style="color:var(--muted);font-size:.78rem">${fmtDate(o.createdAt)}</td>
+                <td>
+                    <select class="filter-select" style="font-size:.75rem;padding:.25rem .5rem" onchange="updateOrderStatus(${o.id},this.value)">
+                        ${['PENDING','CONFIRMED','SHIPPED','DELIVERED','CANCELLED'].map(s =>
+            `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`
+        ).join('')}
+                    </select>
+                </td>
+            </tr>`).join('');
+    }
+
+    function filterOrders() {
+        const q      = document.getElementById('orderSearch').value.toLowerCase();
+        const status = document.getElementById('orderStatusFilter').value;
+        renderOrders(allOrders.filter(o =>
+            (!q      || String(o.id).includes(q) || (o.customerName||'').toLowerCase().includes(q)) &&
+            (!status || o.status === status)
+        ));
+    }
+
+    async function updateOrderStatus(id, status) {
+        try {
+            await apiFetch(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+            toast('Order status updated', 'success');
+        } catch(e) { toast(e.message, 'error'); }
+    }
+
+    // ────────────────────────────────
+    // Helpers
+    // ────────────────────────────────
+    function escHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        return new Date(s).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function statusClass(s) {
+        if (!s) return 'inactive';
+        const m = { ACTIVE:'on', INACTIVE:'off', OUT_OF_STOCK:'warning',
+            PENDING:'pending', CONFIRMED:'on', SHIPPED:'info',
+            DELIVERED:'success', CANCELLED:'banned' };
+        return m[s] || s.toLowerCase();
+    }
+</script>
+
+</body>
+</html>
