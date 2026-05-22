@@ -45,11 +45,15 @@ Look for `commerce-sqlserver-1` in the list.
 Run this single command (replace the email):
 
 ```bash
-docker exec -it commerce-sqlserver-1 /opt/mssql-tools/bin/sqlcmd \
+docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd \
   -S localhost -U sa -P "Admin123!" \
-  -Q "USE ecommerce_db; UPDATE users SET role='ADMIN' WHERE email='your@email.com';"
+  -Q "USE ecommerce_db; UPDATE users SET role='ADMIN' WHERE email='adamarbai170@gmail.com';"
 ```
+one ligne bash admin
+docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -Q "USE ecommerce_db; UPDATE users SET role='ADMIN' WHERE email='adamarbai170@gmail.com';"
 
+print users
+docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -Q "USE ecommerce_db; SELECT email, role FROM users;"
 > If that path doesn't work, try `/opt/mssql-tools18/bin/sqlcmd` and add `-C` at the end.
 
 ### Step 4 — Log in and open the Admin Dashboard
