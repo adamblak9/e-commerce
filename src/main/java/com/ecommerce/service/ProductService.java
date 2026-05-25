@@ -2,6 +2,8 @@ package com.ecommerce.service;
 
 import com.ecommerce.entity.Product;
 import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.ReviewRepository;
+import com.ecommerce.repository.UserRepository;
 import com.ecommerce.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 
@@ -34,7 +36,7 @@ public class ProductService {
             repo.save(product);
             em.getTransaction().commit();
 
-            return buildResponse(product);
+            return buildResponse(em, product, null);
 
         } catch (Exception e) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -45,7 +47,7 @@ public class ProductService {
     }
 
     // -------------------------------------------------------------------------
-    // Get All
+    // Get All (public listing — includes star summary, no comments)
     // -------------------------------------------------------------------------
 
     public List<Map<String, Object>> getAllProducts() {
@@ -53,7 +55,7 @@ public class ProductService {
         ProductRepository repo = new ProductRepository(em);
         try {
             return repo.findAll().stream()
-                    .map(this::buildResponse)
+                    .map(p -> buildResponse(em, p, null))
                     .collect(Collectors.toList());
         } finally {
             em.close();
@@ -62,18 +64,25 @@ public class ProductService {
 
     // -------------------------------------------------------------------------
     // Get by ID
+    //   requesterId == null  → public view (no comments returned)
+    //   requesterId != null  → authenticated; caller's own review/comment included
     // -------------------------------------------------------------------------
 
-    public Map<String, Object> getProductById(Long id) {
+    public Map<String, Object> getProductById(Long id, Long requesterId) {
         EntityManager em = JPAUtil.getEntityManager();
         ProductRepository repo = new ProductRepository(em);
         try {
             Product product = repo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-            return buildResponse(product);
+            return buildResponse(em, product, requesterId);
         } finally {
             em.close();
         }
+    }
+
+    /** Backwards-compatible overload used internally (no auth context). */
+    public Map<String, Object> getProductById(Long id) {
+        return getProductById(id, null);
     }
 
     // -------------------------------------------------------------------------
@@ -85,7 +94,7 @@ public class ProductService {
         ProductRepository repo = new ProductRepository(em);
         try {
             return repo.findByCategory(category).stream()
-                    .map(this::buildResponse)
+                    .map(p -> buildResponse(em, p, null))
                     .collect(Collectors.toList());
         } finally {
             em.close();
@@ -101,7 +110,7 @@ public class ProductService {
         ProductRepository repo = new ProductRepository(em);
         try {
             return repo.findBySellerId(sellerId).stream()
-                    .map(this::buildResponse)
+                    .map(p -> buildResponse(em, p, null))
                     .collect(Collectors.toList());
         } finally {
             em.close();
@@ -117,7 +126,7 @@ public class ProductService {
         ProductRepository repo = new ProductRepository(em);
         try {
             return repo.search(keyword).stream()
-                    .map(this::buildResponse)
+                    .map(p -> buildResponse(em, p, null))
                     .collect(Collectors.toList());
         } finally {
             em.close();
@@ -143,7 +152,6 @@ public class ProductService {
             Product product = repo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-            // Only the seller who owns it or an ADMIN can update
             if (!"ADMIN".equals(requesterRole) && !product.getSellerId().equals(requesterId)) {
                 throw new SecurityException("You are not authorized to update this product");
             }
@@ -165,7 +173,7 @@ public class ProductService {
             Product updated = repo.update(product);
             em.getTransaction().commit();
 
-            return buildResponse(updated);
+            return buildResponse(em, updated, requesterId);
 
         } catch (Exception e) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -189,7 +197,6 @@ public class ProductService {
             Product product = repo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-            // Only the seller who owns it or an ADMIN can delete
             if (!"ADMIN".equals(requesterRole) && !product.getSellerId().equals(requesterId)) {
                 throw new SecurityException("You are not authorized to delete this product");
             }
@@ -206,10 +213,30 @@ public class ProductService {
     }
 
     // -------------------------------------------------------------------------
-    // Helper
+    // Helper — builds the product map.
+    //
+    //  Always included (for store cards):
+    //    averageRating  — rounded to 1 decimal, 0.0 if no ratings yet
+    //    ratingCount    — number of reviews that carry a star rating
+    //
+    //  Included only on product-detail calls by the review author:
+    //    myReview       — { id, rating, comment, createdAt, updatedAt }
+    //                     present only when requesterId != null AND the
+    //                     requester has previously reviewed this product.
     // -------------------------------------------------------------------------
 
-    private Map<String, Object> buildResponse(Product p) {
+    private Map<String, Object> buildResponse(EntityManager em, Product p, Long requesterId) {
+        ReviewRepository reviewRepo = new ReviewRepository(em);
+        UserRepository   userRepo   = new UserRepository(em);
+
+        double avg   = reviewRepo.averageRatingByProduct(p.getId());
+        long   count = reviewRepo.countByRatingForProduct(p.getId());
+
+        // Resolve seller name
+        String sellerName = userRepo.findById(p.getSellerId())
+                .map(u -> (u.getFirstName() + " " + u.getLastName()).trim())
+                .orElse("Seller #" + p.getSellerId());
+
         Map<String, Object> map = new HashMap<>();
         map.put("id",            p.getId());
         map.put("name",          p.getName());
@@ -219,10 +246,29 @@ public class ProductService {
         map.put("category",      p.getCategory());
         map.put("imageUrl",      p.getImageUrl());
         map.put("sellerId",      p.getSellerId());
+        map.put("sellerName",    sellerName);
         map.put("status",        p.getStatus().name());
         map.put("available",     p.isAvailable());
         map.put("createdAt",     p.getCreatedAt() != null ? p.getCreatedAt().toString() : null);
         map.put("updatedAt",     p.getUpdatedAt() != null ? p.getUpdatedAt().toString() : null);
+
+        // Star summary — always present
+        map.put("averageRating", Math.round(avg * 10.0) / 10.0);
+        map.put("ratingCount",   count);
+
+        // Own review (comment + rating) — only for the authenticated author
+        if (requesterId != null) {
+            reviewRepo.findByProductAndUser(p.getId(), requesterId).ifPresent(r -> {
+                Map<String, Object> myReview = new HashMap<>();
+                myReview.put("id",        r.getId());
+                myReview.put("rating",    r.getRating());
+                myReview.put("comment",   r.getComment());
+                myReview.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null);
+                myReview.put("updatedAt", r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null);
+                map.put("myReview", myReview);
+            });
+        }
+
         return map;
     }
 }

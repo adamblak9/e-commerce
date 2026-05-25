@@ -574,6 +574,12 @@
             font-size: 1.15rem; font-weight: 600; color: var(--accent);
         }
         .pc-stock { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+        .pc-rating {
+            display: flex; align-items: center; gap: 0.3rem;
+            font-size: 0.72rem; color: var(--muted); margin-bottom: 0.55rem;
+        }
+        .pc-stars { color: #f4a62a; font-size: 0.75rem; letter-spacing: 1px; }
+        .pc-stars-empty { color: var(--border2); font-size: 0.75rem; letter-spacing: 1px; }
         .pc-stock.low { color: var(--warning); }
         .btn-add {
             width: 34px; height: 34px; border-radius: 50%;
@@ -962,6 +968,19 @@
         const imgHtml  = p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" loading="lazy"/>` : `<span class="no-img">🛍️</span>`;
         const badge    = isOut ? `<span class="pc-badge badge-out">Out of Stock</span>` : isNew ? `<span class="pc-badge badge-new">New</span>` : '';
         const stockTxt = isOut ? `<div class="pc-stock low">Out of stock</div>` : lowStock ? `<div class="pc-stock low">Only ${p.stockQuantity} left</div>` : `<div class="pc-stock">${p.stockQuantity} in stock</div>`;
+
+        // Star rating row
+        const avg   = parseFloat(p.averageRating) || 0;
+        const count = parseInt(p.ratingCount) || 0;
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (avg >= i)            starsHtml += `<span class="pc-stars">★</span>`;
+            else if (avg >= i - 0.5) starsHtml += `<span class="pc-stars" style="opacity:0.5">★</span>`;
+            else                     starsHtml += `<span class="pc-stars-empty">★</span>`;
+        }
+        const ratingRow = count > 0
+            ? `<div class="pc-rating">${starsHtml}<span>${avg.toFixed(1)} (${count})</span></div>`
+            : `<div class="pc-rating"><span class="pc-stars-empty">★★★★★</span><span style="margin-left:0.25rem;">No ratings yet</span></div>`;
         return `
         <div class="product-card" style="animation-delay:${i*0.04}s" onclick="viewProduct(${p.id})">
             <div class="pc-img">
@@ -971,6 +990,7 @@
             <div class="pc-body">
                 <div class="pc-category">${p.category||'General'}</div>
                 <div class="pc-name">${escapeHtml(p.name)}</div>
+                ${ratingRow}
                 <div class="pc-desc">${escapeHtml(p.description||'')}</div>
                 <div class="pc-footer">
                     <div><div class="pc-price">$${price}</div>${stockTxt}</div>
