@@ -1,255 +1,503 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="auth.js"></script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>My Orders — ShopEase</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{
-            --bg:#f8f5f0;--bg2:#f0ebe2;--dark:#111009;--panel:#1a1810;
-            --accent:#b8975a;--accent2:#d4b07a;--text:#1a1810;--muted:#8a8278;
-            --border:#e0d8cc;--white:#fff;
-            --shipped:#3b82f6;--delivering:#3b82f6;--delivered:#22c55e;--pending:#f59e0b;--cancelled:#ef4444;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:      #ffffff;
+            --panel:   #f9f9f8;
+            --border:  #e8e8e6;
+            --border2: #d4d4d0;
+            --accent:  #1a6ef5;
+            --accent2: #4488ff;
+            --accentL: rgba(26,110,245,0.08);
+            --text:    #111110;
+            --text2:   #3a3a38;
+            --muted:   #888886;
+            --error:   #e53535;
+            --success: #18a058;
+            --warning: #e68a2e;
+            --nav-h:   64px;
+            --shipped: #3b82f6;
+            --delivered: #18a058;
+            --pending:   #e68a2e;
+            --cancelled: #e53535;
         }
-        html{scroll-behavior:smooth}
-        body{background:var(--bg);font-family:'Outfit',sans-serif;color:var(--text);min-height:100vh}
-        a{text-decoration:none;color:inherit}
 
-        /* Redirect if not logged in */
-
-        /* ── Navbar ── */
-        nav{
-            position:sticky;top:0;z-index:100;
-            display:flex;align-items:center;justify-content:space-between;
-            padding:0 3rem;height:64px;
-            background:rgba(248,245,240,.96);backdrop-filter:blur(12px);
-            border-bottom:1px solid var(--border);
+        html, body { height: 100%; scroll-behavior: smooth; }
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
         }
-        .nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600}
-        .nav-brand span{color:var(--accent)}
-        .nav-right{display:flex;align-items:center;gap:1rem}
-        .nav-user{display:flex;align-items:center;gap:.6rem;font-size:.88rem;color:var(--muted)}
-        .nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;color:#fff}
-        .back-btn{padding:.5rem 1.2rem;border:1px solid var(--border);border-radius:100px;font-size:.85rem;font-weight:500;cursor:pointer;background:transparent;font-family:'Outfit',sans-serif;transition:all .2s}
-        .back-btn:hover{border-color:var(--accent);color:var(--accent)}
+        a { text-decoration: none; color: inherit; }
 
-        /* ── Page header ── */
-        .page-header{padding:3rem 3rem 2rem;border-bottom:1px solid var(--border);background:var(--white)}
-        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:300;margin-bottom:.4rem}
-        .page-header p{color:var(--muted);font-size:.92rem}
+        /* ═══════════════════════════════════════
+           NAVBAR — identical to store/product
+        ═══════════════════════════════════════ */
+        .top-nav {
+            position: sticky; top: 0; z-index: 300;
+            height: var(--nav-h);
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 2rem; gap: 1.5rem;
+        }
+        .nav-brand {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem; font-weight: 700;
+            color: var(--text); white-space: nowrap;
+        }
+        .nav-brand span { color: var(--accent); }
+        .nav-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+        .nav-user { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--muted); }
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; font-weight: 600; color: white;
+        }
+        .btn-sm {
+            padding: 0.42rem 1rem; border-radius: 40px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-outline {
+            border: 1px solid var(--border); background: transparent; color: var(--text2);
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ═══════════════════════════════════════
+           PAGE HEADER
+        ═══════════════════════════════════════ */
+        .page-header {
+            border-bottom: 1px solid var(--border);
+            padding: 2.5rem 2rem 0;
+            background: var(--bg);
+        }
+        .page-header-inner {
+            max-width: 960px; margin: 0 auto;
+        }
+        .page-tag {
+            font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 0.4rem;
+        }
+        .page-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.2rem; font-weight: 600;
+            letter-spacing: -0.02em; margin-bottom: 0.3rem;
+        }
+        .page-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.5rem; }
 
         /* ── Tabs ── */
-        .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--white);padding:0 3rem}
-        .tab{padding:.9rem 1.5rem;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
-        .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-        .tab-count{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bg2);font-size:.7rem;font-weight:600;margin-left:.4rem;color:var(--text)}
-        .tab.active .tab-count{background:var(--accent);color:#fff}
-
-        /* ── Content ── */
-        .content{max-width:900px;margin:0 auto;padding:2.5rem 3rem}
-
-        /* ── Order card ── */
-        .order-card{
-            background:var(--white);border:1px solid var(--border);
-            border-radius:16px;margin-bottom:1.5rem;overflow:hidden;
-            transition:box-shadow .2s;
+        .tabs { display: flex; gap: 0; }
+        .tab {
+            padding: 0.75rem 1.25rem;
+            border: none; background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; color: var(--muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.2s;
         }
-        .order-card:hover{box-shadow:0 8px 30px rgba(0,0,0,.07)}
-
-        .order-head{
-            display:flex;align-items:center;justify-content:space-between;
-            padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
-            cursor:pointer;
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; border-radius: 30px;
+            background: var(--panel); font-size: 0.65rem; font-weight: 700;
+            margin-left: 0.4rem; color: var(--muted);
+            padding: 0 5px;
+            border: 1px solid var(--border);
         }
-        .order-head-left{display:flex;align-items:center;gap:1.2rem}
-
-        .order-id{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600}
-        .order-date{font-size:.8rem;color:var(--muted)}
-
-        .status-badge{
-            display:inline-flex;align-items:center;gap:.4rem;
-            padding:.35rem .85rem;border-radius:100px;
-            font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+        .tab.active .tab-count {
+            background: var(--accent); color: white; border-color: var(--accent);
         }
-        .status-dot{width:6px;height:6px;border-radius:50%}
 
-        .status-SHIPPED{background:rgba(59,130,246,.1);color:var(--delivering)}
-        .status-SHIPPED .status-dot{background:var(--delivering)}
-        .status-DELIVERED{background:rgba(34,197,94,.1);color:var(--delivered)}
-        .status-DELIVERED .status-dot{background:var(--delivered)}
-        .status-PENDING{background:rgba(245,158,11,.1);color:var(--pending)}
-        .status-PENDING .status-dot{background:var(--pending)}
-        .status-CANCELLED{background:rgba(239,68,68,.1);color:var(--cancelled)}
-        .status-CANCELLED .status-dot{background:var(--cancelled)}
+        /* ═══════════════════════════════════════
+           CONTENT
+        ═══════════════════════════════════════ */
+        .content {
+            max-width: 960px; margin: 0 auto;
+            padding: 2rem 2rem 4rem;
+        }
 
-        .order-total{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600}
-        .chevron{font-size:.85rem;color:var(--muted);transition:transform .3s}
-        .order-card.open .chevron{transform:rotate(180deg)}
+        /* ═══════════════════════════════════════
+           ORDER CARD
+        ═══════════════════════════════════════ */
+        .order-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: box-shadow 0.25s, border-color 0.25s;
+        }
+        .order-card:hover {
+            box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+            border-color: rgba(26,110,245,0.18);
+        }
 
-        /* ── Order body (collapsible) ── */
-        .order-body{display:none;padding:1.5rem}
-        .order-card.open .order-body{display:block}
+        .order-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.1rem 1.4rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        .order-head:hover { background: var(--panel); }
+        .order-head-left { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+        .order-id {
+            font-family: 'Fraunces', serif;
+            font-size: 1.05rem; font-weight: 600;
+        }
+        .order-date { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+
+        /* Status badge */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.28rem 0.75rem; border-radius: 30px;
+            font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .status-SHIPPED   { background: rgba(59,130,246,0.1);  color: var(--shipped);   }
+        .status-SHIPPED   .status-dot { background: var(--shipped); }
+        .status-CONFIRMED { background: rgba(26,110,245,0.08); color: var(--accent);    }
+        .status-CONFIRMED .status-dot { background: var(--accent); }
+        .status-DELIVERED { background: rgba(24,160,88,0.1);   color: var(--delivered); }
+        .status-DELIVERED .status-dot { background: var(--delivered); }
+        .status-PENDING   { background: rgba(230,138,46,0.1);  color: var(--pending);   }
+        .status-PENDING   .status-dot { background: var(--pending); }
+        .status-CANCELLED { background: rgba(229,53,53,0.1);   color: var(--error);     }
+        .status-CANCELLED .status-dot { background: var(--error); }
+
+        .order-total {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15rem; font-weight: 600; color: var(--accent);
+        }
+        .order-head-right { display: flex; align-items: center; gap: 1rem; }
+        .chevron {
+            font-size: 0.7rem; color: var(--muted);
+            transition: transform 0.3s; display: inline-block;
+        }
+        .order-card.open .chevron { transform: rotate(180deg); }
+
+        /* ── Order body ── */
+        .order-body {
+            border-top: 1px solid var(--border);
+            padding: 1.4rem;
+            display: none;
+            animation: fadeSlide 0.2s ease;
+        }
+        .order-card.open .order-body { display: block; }
+        @keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
 
         /* Progress tracker */
-        .progress-track{display:flex;align-items:center;margin-bottom:2rem}
-        .progress-step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
-        .progress-step:not(:last-child)::after{
-            content:'';position:absolute;top:14px;left:50%;width:100%;
-            height:2px;background:var(--border);z-index:0;
+        .progress-track {
+            display: flex; align-items: flex-start;
+            margin-bottom: 1.8rem;
         }
-        .progress-step.done:not(:last-child)::after{background:var(--delivered)}
-        .progress-step.active:not(:last-child)::after{background:var(--delivering)}
-
-        .step-dot{
-            width:28px;height:28px;border-radius:50%;
-            display:flex;align-items:center;justify-content:center;
-            font-size:.85rem;z-index:1;border:2px solid var(--border);
-            background:var(--white);transition:all .3s;
+        .progress-step {
+            display: flex; flex-direction: column; align-items: center;
+            flex: 1; position: relative;
         }
-        .progress-step.done .step-dot{background:var(--delivered);border-color:var(--delivered);color:#fff}
-        .progress-step.active .step-dot{background:var(--delivering);border-color:var(--delivering);color:#fff;animation:pulse 2s ease infinite}
-        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+        .progress-step:not(:last-child)::after {
+            content: ''; position: absolute;
+            top: 14px; left: 50%; width: 100%;
+            height: 2px; background: var(--border); z-index: 0;
+        }
+        .progress-step.done:not(:last-child)::after  { background: var(--success); }
+        .progress-step.active:not(:last-child)::after { background: var(--accent); }
 
-        .step-label{font-size:.72rem;font-weight:500;color:var(--muted);margin-top:.5rem;text-align:center}
-        .progress-step.done .step-label,.progress-step.active .step-label{color:var(--text)}
+        .step-dot {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; z-index: 1;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            transition: all 0.3s;
+        }
+        .progress-step.done   .step-dot { background: var(--success); border-color: var(--success); color: white; }
+        .progress-step.active .step-dot {
+            background: var(--accent); border-color: var(--accent); color: white;
+            animation: stepPulse 2s ease infinite;
+        }
+        @keyframes stepPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(26,110,245,0.3); }
+            50%      { box-shadow: 0 0 0 6px rgba(26,110,245,0); }
+        }
+        .step-label {
+            font-size: 0.68rem; font-weight: 500;
+            color: var(--muted); margin-top: 0.45rem;
+            text-align: center;
+        }
+        .progress-step.done   .step-label,
+        .progress-step.active .step-label { color: var(--text); }
 
-        /* Order info grid */
-        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
-        .info-box{background:var(--bg2);border-radius:10px;padding:.9rem 1rem}
-        .info-label{font-size:.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
-        .info-value{font-size:.9rem;font-weight:500}
+        /* Info grid */
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.75rem; margin-bottom: 1.4rem;
+        }
+        .info-box {
+            background: var(--panel); border-radius: 14px;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--border);
+        }
+        .info-label {
+            font-size: 0.65rem; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 0.25rem;
+        }
+        .info-value { font-size: 0.88rem; font-weight: 500; }
 
-        /* Items list */
-        .items-title{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
-        .order-item{display:flex;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--border)}
-        .order-item:last-child{border-bottom:none}
-        .oi-img{width:52px;height:52px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0}
-        .oi-img img{width:100%;height:100%;object-fit:cover}
-        .oi-info{flex:1;min-width:0}
-        .oi-name{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .oi-qty{font-size:.8rem;color:var(--muted);margin-top:2px}
-        .oi-price{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600}
+        /* Items */
+        .items-title {
+            font-size: 0.65rem; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 0.9rem;
+        }
+        .order-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .order-item:last-child { border-bottom: none; }
+        .oi-img {
+            width: 50px; height: 50px; border-radius: 12px;
+            background: var(--panel); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; overflow: hidden; flex-shrink: 0;
+        }
+        .oi-img img { width: 100%; height: 100%; object-fit: cover; }
+        .oi-info { flex: 1; min-width: 0; }
+        .oi-name {
+            font-size: 0.88rem; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .oi-qty { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+        .oi-price {
+            font-family: 'Fraunces', serif;
+            font-size: 1rem; font-weight: 600; color: var(--accent);
+        }
 
         /* Totals */
-        .order-totals{margin-top:1.2rem;border-top:1px solid var(--border);padding-top:1.2rem}
-        .total-row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:.4rem;color:var(--muted)}
-        .total-row.grand{font-size:1.1rem;font-weight:600;color:var(--text);margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border)}
-        .grand .grand-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem}
-
-        /* ── Empty state ── */
-        .empty-state{text-align:center;padding:5rem 2rem}
-        .empty-state .icon{font-size:3rem;margin-bottom:1rem}
-        .empty-state h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;margin-bottom:.5rem}
-        .empty-state p{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
-        .shop-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.8rem;background:var(--dark);color:#fff;border-radius:100px;font-size:.9rem;font-weight:500;transition:background .2s}
-        .shop-btn:hover{background:var(--panel)}
-
-        /* ── Skeleton ── */
-        .skeleton{animation:skpulse 1.5s ease infinite}
-        .skel-box{background:var(--bg2);border-radius:10px}
-        @keyframes skpulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-        /* ── Delivering timer ── */
-        .delivery-timer{
-            display:inline-flex;align-items:center;gap:.4rem;
-            font-size:.78rem;color:var(--delivering);font-weight:500;
-            margin-left:.5rem;
+        .order-totals {
+            margin-top: 1.1rem; border-top: 1px solid var(--border);
+            padding-top: 1.1rem;
+        }
+        .total-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--muted);
+        }
+        .total-row.grand {
+            font-size: 1rem; font-weight: 600; color: var(--text);
+            margin-top: 0.6rem; padding-top: 0.6rem;
+            border-top: 1px solid var(--border);
+        }
+        .grand .grand-val {
+            font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--accent);
         }
 
-        @media(max-width:768px){
-            nav{padding:0 1.5rem}
-            .page-header,.tabs,.content{padding-left:1.5rem;padding-right:1.5rem}
-            .info-grid{grid-template-columns:1fr}
+        /* Delivery timer */
+        .delivery-timer {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            font-size: 0.75rem; color: var(--shipped); font-weight: 500;
+            background: rgba(59,130,246,0.08);
+            padding: 0.2rem 0.6rem; border-radius: 30px;
         }
+
+        /* ═══════════════════════════════════════
+           EMPTY STATE
+        ═══════════════════════════════════════ */
+        .empty-state {
+            text-align: center; padding: 5rem 2rem;
+        }
+        .empty-state .eicon { font-size: 2.8rem; margin-bottom: 1rem; }
+        .empty-state h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.6rem; font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .shop-btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.7rem 1.6rem;
+            background: var(--text); color: white;
+            border-radius: 40px; font-size: 0.85rem; font-weight: 500;
+            transition: background 0.2s;
+        }
+        .shop-btn:hover { background: var(--text2); }
+
+        /* ═══════════════════════════════════════
+           SKELETON
+        ═══════════════════════════════════════ */
+        .skeleton { animation: skpulse 1.5s ease infinite; }
+        .skel-box { background: var(--panel); border-radius: 18px; border: 1px solid var(--border); }
+        @keyframes skpulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* ═══════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════ */
+        @media (max-width: 700px) {
+            .top-nav { padding: 0 1rem; }
+            .page-header { padding: 1.8rem 1rem 0; }
+            .content { padding: 1.5rem 1rem 3rem; }
+            .info-grid { grid-template-columns: 1fr; }
+            .order-head { padding: 1rem; flex-wrap: wrap; gap: 0.6rem; }
+        }
+
+        .user-menu { position: relative; }
+        .user-trigger { padding: 4px 6px; border-radius: 8px; transition: background 0.15s; }
+        .user-trigger:hover { background: var(--panel); }
+        .dropdown {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+            padding: 0.5rem; min-width: 210px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 200;
+        }
+        .user-menu.open .dropdown { display: block; }
+        .dd-header { padding: 0.6rem 0.8rem 0.8rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; }
+        .dd-name { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+        .dd-email { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+        .dd-role { display: inline-block; margin-top: 0.3rem; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 20px; background: var(--accentL); color: var(--accent); }
+        .dd-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.8rem; border-radius: 10px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; color: var(--text2); }
+        .dd-item:hover { background: var(--panel); }
+        .dd-item.logout { color: var(--error); }
+        .dd-sep { height: 1px; background: var(--border); margin: 0.3rem 0; }
     </style>
 </head>
 <body>
 
 <script>
-    // Redirect if not logged in or not a customer
     const _u = JSON.parse(localStorage.getItem('user') || 'null');
     if (!_u) window.location.replace('login.html');
-    if (_u && _u.role !== 'CUSTOMER') window.location.replace('index.html');
+    if (_u && _u.role !== 'CUSTOMER' && _u.role !== 'ADMIN' && _u.role !== 'SELLER') window.location.replace('index.html');
 </script>
 
-<!-- Navbar -->
-<nav>
+<!-- ═══════ NAVBAR ═══════ -->
+<nav class="top-nav">
     <a href="index.html" class="nav-brand">Shop<span>Ease</span></a>
     <div class="nav-right">
-        <div class="nav-user">
-            <div class="nav-avatar" id="navAvatar"></div>
-            <span id="navName"></span>
+        <div class="user-menu" id="userMenu">
+            <div class="user-trigger" onclick="toggleDropdown()" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                <div class="nav-avatar" id="navAvatar"></div>
+                <span id="navName" style="font-size:0.85rem;color:var(--text2);font-weight:500;"></span>
+                <span style="font-size:0.65rem;color:#888;">▼</span>
+            </div>
+            <div class="dropdown" id="navDropdown"></div>
         </div>
-        <button class="back-btn" onclick="window.location.href='store.html'">← Continue Shopping</button>
+        <a href="store.html"><button class="btn-sm btn-outline">← Continue Shopping</button></a>
     </div>
 </nav>
 
-<!-- Page header -->
+<!-- ═══════ PAGE HEADER ═══════ -->
 <div class="page-header">
-    <h1>My Orders</h1>
-    <p>Track your deliveries and browse your order history.</p>
-</div>
-
-<!-- Tabs -->
-<div class="tabs">
-    <button class="tab active" id="tabActive" onclick="switchTab('active')">
-        Active Orders <span class="tab-count" id="countActive">0</span>
-    </button>
-    <button class="tab" id="tabHistory" onclick="switchTab('history')">
-        Order History <span class="tab-count" id="countHistory">0</span>
-    </button>
-</div>
-
-<!-- Content -->
-<div class="content">
-
-    <!-- Skeleton -->
-    <div id="skeleton">
-        <div class="skel-box" style="height:80px;border-radius:16px;margin-bottom:1rem"></div>
-        <div class="skel-box" style="height:80px;border-radius:16px;margin-bottom:1rem"></div>
-        <div class="skel-box" style="height:80px;border-radius:16px"></div>
+    <div class="page-header-inner">
+        <div class="page-tag">Account</div>
+        <div class="page-title">My Orders</div>
+        <div class="page-sub">Track your deliveries and browse your order history.</div>
+        <div class="tabs">
+            <button class="tab active" id="tabActive" onclick="switchTab('active')">
+                Active Orders <span class="tab-count" id="countActive">0</span>
+            </button>
+            <button class="tab" id="tabHistory" onclick="switchTab('history')">
+                Order History <span class="tab-count" id="countHistory">0</span>
+            </button>
+        </div>
     </div>
+</div>
 
+<!-- ═══════ CONTENT ═══════ -->
+<div class="content">
+    <div id="skeleton">
+        <div class="skel-box" style="height:72px;margin-bottom:0.9rem"></div>
+        <div class="skel-box" style="height:72px;margin-bottom:0.9rem"></div>
+        <div class="skel-box" style="height:72px"></div>
+    </div>
     <div id="ordersContainer" style="display:none"></div>
 </div>
 
 <script>
-    const BASE  = '/api';
+    const BASE = "/api";
     const user  = JSON.parse(localStorage.getItem('user') || 'null');
     const token = localStorage.getItem('token');
 
-    let allOrders   = [];
-    let currentTab  = 'active';
-    const ACTIVE_STATUSES   = ['PENDING', 'CONFIRMED', 'SHIPPED'];
-    const HISTORY_STATUSES  = ['DELIVERED', 'CANCELLED'];
+    let allOrders  = [];
+    let currentTab = 'active';
+    const ACTIVE_STATUSES  = ['PENDING', 'CONFIRMED', 'SHIPPED'];
+    const HISTORY_STATUSES = ['DELIVERED', 'CANCELLED'];
 
-    // ── Init ─────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
-        if (user) {
-            document.getElementById('navName').textContent   = user.firstName;
-            document.getElementById('navAvatar').textContent =
-                (user.firstName?.[0]||'') + (user.lastName?.[0]||'');
-        }
+        initNav();
         fetchOrders();
     });
 
-    // ── Fetch ─────────────────────────────────────────
+    function initNav() {
+        if (!user) return;
+        const role = user.role || 'CUSTOMER';
+        document.getElementById('userMenu').style.display = 'flex';
+        document.getElementById('navName').textContent   = user.firstName || '';
+        document.getElementById('navAvatar').textContent =
+            (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+        const dashItem = role === 'ADMIN'
+            ? `<div class="dd-item" onclick="window.location.href='admin.html'"><span>⚙️</span> Admin Panel</div>`
+            : role === 'SELLER'
+            ? `<div class="dd-item" onclick="window.location.href='products.html'"><span>📦</span> Manage Products</div>`
+            : '';
+        document.getElementById('navDropdown').innerHTML = `
+            <div class="dd-header">
+                <div class="dd-name">${esc(user.firstName||'')} ${esc(user.lastName||'')}</div>
+                <div class="dd-email">${esc(user.email||'')}</div>
+                <span class="dd-role">${role}</span>
+            </div>
+            <div class="dd-item" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</div>
+            <div class="dd-item" onclick="window.location.href='Orders.html'"><span>🧾</span> My Orders</div>
+            ${dashItem}
+            <div class="dd-sep"></div>
+            <div class="dd-item logout" onclick="handleLogout()"><span>🚪</span> Sign Out</div>`;
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function toggleDropdown() { document.getElementById('userMenu').classList.toggle('open'); }
+    document.addEventListener('click', e => {
+        const m = document.getElementById('userMenu');
+        if (m && !m.contains(e.target)) m.classList.remove('open');
+    });
+    function handleLogout() {
+        localStorage.removeItem('token'); localStorage.removeItem('user');
+        window.location.href = 'login.html';
+    }
+
     async function fetchOrders() {
         try {
-            const res  = await fetch(`${BASE}/customer/orders`, {
+            const res = await fetch(`${BASE}/customer/orders`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            allOrders = await res.json();
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Could not load orders.');
+            if (!Array.isArray(data)) throw new Error('Unexpected orders response.');
+            allOrders = data;
             render();
         } catch (e) {
             document.getElementById('skeleton').innerHTML =
-                '<p style="color:var(--muted);text-align:center;padding:3rem">Could not load orders.</p>';
+                `<p style="color:var(--muted);text-align:center;padding:3rem">${esc(e.message || 'Could not load orders.')}</p>`;
         }
     }
 
-    // ── Tab switch ────────────────────────────────────
     function switchTab(tab) {
         currentTab = tab;
         document.getElementById('tabActive').classList.toggle('active',  tab === 'active');
@@ -257,9 +505,8 @@
         render();
     }
 
-    // ── Render ────────────────────────────────────────
     function render() {
-        document.getElementById('skeleton').style.display      = 'none';
+        document.getElementById('skeleton').style.display       = 'none';
         document.getElementById('ordersContainer').style.display = 'block';
 
         const active  = allOrders.filter(o => ACTIVE_STATUSES.includes(o.status));
@@ -268,141 +515,131 @@
         document.getElementById('countActive').textContent  = active.length;
         document.getElementById('countHistory').textContent = history.length;
 
-        const list = currentTab === 'active' ? active : history;
+        const list      = currentTab === 'active' ? active : history;
         const container = document.getElementById('ordersContainer');
 
         if (!list.length) {
             container.innerHTML = `
-        <div class="empty-state">
-          <div class="icon">${currentTab === 'active' ? '📦' : '🕐'}</div>
-          <h3>${currentTab === 'active' ? 'No active orders' : 'No order history yet'}</h3>
-          <p>${currentTab === 'active'
-                ? 'When you place an order it will appear here.'
-                : 'Your completed orders will appear here.'}</p>
-          <a href="store.html" class="shop-btn">Start Shopping →</a>
-        </div>`;
+                <div class="empty-state">
+                    <div class="eicon">${currentTab === 'active' ? '📦' : '🕐'}</div>
+                    <h3>${currentTab === 'active' ? 'No active orders' : 'No order history yet'}</h3>
+                    <p>${currentTab === 'active'
+                        ? 'When you place an order it will appear here.'
+                        : 'Your completed orders will appear here.'}</p>
+                    <a href="store.html" class="shop-btn">Start Shopping →</a>
+                </div>`;
             return;
         }
 
         container.innerHTML = list.map(o => orderCard(o)).join('');
-
-        // Start countdown timers for DELIVERING orders
         list.filter(o => o.status === 'SHIPPED').forEach(o => startTimer(o));
     }
 
-    // ── Order card HTML ───────────────────────────────
     function orderCard(o) {
         const date     = new Date(o.createdAt).toLocaleDateString('en-US',
-            {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
         const items    = o.items || [];
-        const subtotal = items.reduce((s,i) => s + parseFloat(i.subtotal), 0);
+        const subtotal = items.reduce((s, i) => s + parseFloat(i.subtotal), 0);
 
-        const progressHtml = progressTracker(o.status);
         const timerHtml = o.status === 'SHIPPED'
-            ? `<span class="delivery-timer" id="timer-${o.id}">⏱ calculating...</span>`
-            : '';
+            ? `<span class="delivery-timer" id="timer-${o.id}">⏱ calculating…</span>` : '';
 
         const itemsHtml = items.map(i => `
-      <div class="order-item">
-        <div class="oi-img">
-          ${i.imageUrl ? `<img src="${i.imageUrl}" alt="${i.productName}"/>` : '🛍️'}
-        </div>
-        <div class="oi-info">
-          <div class="oi-name">${i.productName}</div>
-          <div class="oi-qty">Qty: ${i.quantity}</div>
-        </div>
-        <div class="oi-price">$${parseFloat(i.subtotal).toFixed(2)}</div>
-      </div>`).join('');
+            <div class="order-item">
+                <div class="oi-img">
+                    ${i.imageUrl ? `<img src="${i.imageUrl}" alt="${i.productName}"/>` : '🛍️'}
+                </div>
+                <div class="oi-info">
+                    <div class="oi-name">${i.productName}</div>
+                    <div class="oi-qty">Qty: ${i.quantity}</div>
+                </div>
+                <div class="oi-price">$${parseFloat(i.subtotal).toFixed(2)}</div>
+            </div>`).join('');
 
         return `
-      <div class="order-card" id="card-${o.id}">
-        <div class="order-head" onclick="toggleCard(${o.id})">
-          <div class="order-head-left">
-            <div>
-              <div class="order-id">Order #${o.id}</div>
-              <div class="order-date">${date}</div>
-            </div>
-            <span class="status-badge status-${o.status}">
-              <span class="status-dot"></span>
-              ${formatStatus(o.status)}
-            </span>
-            ${timerHtml}
-          </div>
-          <div style="display:flex;align-items:center;gap:1rem">
-            <div class="order-total">$${parseFloat(o.totalAmount).toFixed(2)}</div>
-            <span class="chevron">▼</span>
-          </div>
-        </div>
-        <div class="order-body">
-          ${progressHtml}
-          <div class="info-grid">
-            <div class="info-box">
-              <div class="info-label">Shipping Address</div>
-              <div class="info-value">${o.shippingAddress || '—'}</div>
-            </div>
-            <div class="info-box">
-              <div class="info-label">Order Date</div>
-              <div class="info-value">${date}</div>
-            </div>
-            ${o.deliveredAt ? `
-            <div class="info-box">
-              <div class="info-label">Delivered At</div>
-              <div class="info-value">${new Date(o.deliveredAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-            </div>` : ''}
-          </div>
-          <div class="items-title">Items Ordered</div>
-          ${itemsHtml}
-          <div class="order-totals">
-            <div class="total-row"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
-            <div class="total-row"><span>Shipping</span><span>Free</span></div>
-            <div class="total-row grand"><span>Total</span><span class="grand-val">$${parseFloat(o.totalAmount).toFixed(2)}</span></div>
-          </div>
-        </div>
-      </div>`;
+            <div class="order-card" id="card-${o.id}">
+                <div class="order-head" onclick="toggleCard(${o.id})">
+                    <div class="order-head-left">
+                        <div>
+                            <div class="order-id">Order #${o.id}</div>
+                            <div class="order-date">${date}</div>
+                        </div>
+                        <span class="status-badge status-${o.status}">
+                            <span class="status-dot"></span>
+                            ${formatStatus(o.status)}
+                        </span>
+                        ${timerHtml}
+                    </div>
+                    <div class="order-head-right">
+                        <div class="order-total">$${parseFloat(o.totalAmount).toFixed(2)}</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                </div>
+                <div class="order-body">
+                    ${progressTracker(o.status)}
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div class="info-label">Shipping Address</div>
+                            <div class="info-value">${o.shippingAddress || '—'}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Order Date</div>
+                            <div class="info-value">${date}</div>
+                        </div>
+                        ${o.deliveredAt ? `
+                        <div class="info-box">
+                            <div class="info-label">Delivered At</div>
+                            <div class="info-value">${new Date(o.deliveredAt).toLocaleDateString('en-US',
+                                { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })}</div>
+                        </div>` : ''}
+                    </div>
+                    <div class="items-title">Items Ordered</div>
+                    ${itemsHtml}
+                    <div class="order-totals">
+                        <div class="total-row"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+                        <div class="total-row"><span>Shipping</span><span>Free</span></div>
+                        <div class="total-row grand">
+                            <span>Total</span>
+                            <span class="grand-val">$${parseFloat(o.totalAmount).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     }
 
-    // ── Progress tracker ──────────────────────────────
     function progressTracker(status) {
         const steps = [
-            { key:'PENDING',   label:'Order Placed', icon:'📋' },
-            { key:'CONFIRMED', label:'Confirmed',    icon:'✔️'  },
-            { key:'SHIPPED',   label:'On the Way',   icon:'🚚' },
-            { key:'DELIVERED', label:'Delivered',    icon:'✅' },
+            { key: 'PENDING',   label: 'Order Placed', icon: '📋' },
+            { key: 'CONFIRMED', label: 'Confirmed',    icon: '✓'  },
+            { key: 'SHIPPED',   label: 'On the Way',   icon: '🚚' },
+            { key: 'DELIVERED', label: 'Delivered',    icon: '✅' },
         ];
-
-        const order = ['PENDING','CONFIRMED','SHIPPED','DELIVERED'];
+        const order = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED'];
         const idx   = order.indexOf(status);
 
-        const stepsHtml = steps.map((s, i) => {
-            const cls = i < idx ? 'done' : i === idx ? 'active' : '';
-            return `
-        <div class="progress-step ${cls}">
-          <div class="step-dot">${s.icon}</div>
-          <div class="step-label">${s.label}</div>
+        return `<div class="progress-track">
+            ${steps.map((s, i) => {
+                const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+                return `<div class="progress-step ${cls}">
+                    <div class="step-dot">${i < idx ? '✓' : s.icon}</div>
+                    <div class="step-label">${s.label}</div>
+                </div>`;
+            }).join('')}
         </div>`;
-        }).join('');
-
-        return `<div class="progress-track">${stepsHtml}</div>`;
     }
 
-    // ── Toggle card open/close ────────────────────────
     function toggleCard(id) {
         document.getElementById('card-' + id).classList.toggle('open');
     }
 
-    // ── Countdown timer for delivering orders ─────────
     function startTimer(order) {
         const el = document.getElementById('timer-' + order.id);
         if (!el) return;
-
-        const createdAt  = new Date(order.createdAt);
-        const deliverAt  = new Date(createdAt.getTime() + 60 * 60 * 1000); // +1 hour
-
+        const deliverAt = new Date(new Date(order.createdAt).getTime() + 60 * 60 * 1000);
         function tick() {
             const diff = deliverAt - Date.now();
             if (diff <= 0) {
                 el.textContent = '⏱ Arriving any moment…';
-                // Refresh orders from server after a few seconds
                 setTimeout(fetchOrders, 5000);
                 return;
             }
@@ -414,16 +651,9 @@
         tick();
     }
 
-    // ── Helpers ───────────────────────────────────────
     function formatStatus(s) {
-        const map = {
-            PENDING:   'Pending',
-            CONFIRMED: 'Confirmed',
-            SHIPPED:   'On the Way',
-            DELIVERED: 'Delivered',
-            CANCELLED: 'Cancelled'
-        };
-        return map[s] || s;
+        return { PENDING:'Pending', CONFIRMED:'Confirmed', SHIPPED:'On the Way',
+                 DELIVERED:'Delivered', CANCELLED:'Cancelled' }[s] || s;
     }
 </script>
 </body>

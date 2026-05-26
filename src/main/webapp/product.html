@@ -588,6 +588,31 @@
             50% { opacity: 0.5; }
         }
 
+        /* User dropdown */
+        .user-menu { position: relative; }
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 0.5rem;
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            z-index: 200;
+        }
+        .user-menu.open .dropdown { display: block; }
+        .dd-header { padding: 0.6rem 0.8rem 0.8rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; }
+        .dd-name { font-size: 0.88rem; font-weight: 600; }
+        .dd-email { font-size: 0.75rem; color: var(--muted); }
+        .dd-role { display: inline-block; margin-top: 0.3rem; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 20px; background: var(--accentL); color: var(--accent); }
+        .dd-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 10px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; }
+        .dd-item:hover { background: var(--panel); }
+        .dd-item.logout { color: var(--error); }
+        .dd-sep { height: 1px; background: var(--border); margin: 0.3rem 0; }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -984,9 +1009,13 @@
 <nav>
     <a href="index.html" class="nav-brand">Shop<span>Ease</span></a>
     <div class="nav-r">
-        <div class="nav-user" id="navUser" style="display:none;">
-            <div class="nav-avatar" id="navAvatar"></div>
-            <span id="navName"></span>
+        <div class="user-menu" id="userMenu" style="display:none;">
+            <div class="user-trigger" onclick="toggleDropdown()" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                <div class="nav-avatar" id="navAvatar"></div>
+                <span id="navName" style="font-size:0.85rem;color:var(--muted);"></span>
+                <span style="font-size:0.7rem;color:var(--muted);">▼</span>
+            </div>
+            <div class="dropdown" id="navDropdown"></div>
         </div>
         <button class="cart-btn" onclick="window.location.href='cart.html'">
             🛒 <span class="cart-count" id="cartCount">0</span>
@@ -1063,7 +1092,7 @@
 
 <script>
     // ===================== ORIGINAL LOGIC (fully preserved) =====================
-    const BASE  = '/api';
+    const BASE = "/api";
     const user  = JSON.parse(localStorage.getItem('user') || 'null');
     // cart is now managed by Cart API (cart.js)
     let qty     = 1;
@@ -1103,12 +1132,43 @@
     });
 
     function initNav() {
-        if (user) {
-            document.getElementById('navUser').style.display = 'flex';
-            document.getElementById('navName').textContent   = user.firstName;
-            document.getElementById('navAvatar').textContent =
-                (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
-        }
+        if (!user) return;
+        const role = user.role || 'CUSTOMER';
+        document.getElementById('userMenu').style.display = 'flex';
+        document.getElementById('navName').textContent    = user.firstName || '';
+        document.getElementById('navAvatar').textContent  =
+            (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+        const dashItem = role === 'ADMIN'
+            ? `<div class="dd-item" onclick="window.location.href='admin.html'"><span>⚙️</span> Admin Panel</div>`
+            : role === 'SELLER'
+            ? `<div class="dd-item" onclick="window.location.href='products.html'"><span>📦</span> Manage Products</div>`
+            : '';
+        document.getElementById('navDropdown').innerHTML = `
+            <div class="dd-header">
+                <div class="dd-name">${user.firstName||''} ${user.lastName||''}</div>
+                <div class="dd-email">${user.email||''}</div>
+                <span class="dd-role">${role}</span>
+            </div>
+            <div class="dd-item" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</div>
+            <div class="dd-item" onclick="window.location.href='Orders.html'"><span>🧾</span> My Orders</div>
+            ${dashItem}
+            <div class="dd-sep"></div>
+            <div class="dd-item logout" onclick="handleLogout()"><span>🚪</span> Sign Out</div>`;
+    }
+
+    function toggleDropdown() {
+        document.getElementById('userMenu')?.classList.toggle('open');
+    }
+
+    document.addEventListener('click', e => {
+        const menu = document.getElementById('userMenu');
+        if (menu && !menu.contains(e.target)) menu.classList.remove('open');
+    });
+
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
     }
 
     async function fetchProduct() {
@@ -1178,10 +1238,6 @@
                 <div class="meta-label">Status</div>
                 <div class="meta-value">${p.status}</div>
             </div>
-            <div class="meta-item">
-                <div class="meta-label">Product ID</div>
-                <div class="meta-value">#${p.id}</div>
-            </div>
         `;
 
         // Seller info
@@ -1249,6 +1305,11 @@
     async function addToCart() {
         if (!product) return;
         await Cart.add(product.id, product.name, parseFloat(product.price), qty, product.imageUrl || '');
+        product.stockQuantity = Math.max(0, product.stockQuantity - qty);
+        if (product.stockQuantity === 0) product.status = 'OUT_OF_STOCK';
+        qty = Math.min(qty, Math.max(1, product.stockQuantity));
+        renderProduct(product);
+        document.getElementById('qtyVal').textContent = qty;
         await Cart.refreshBadge('cartCount');
 
         const fb = document.getElementById('addFeedback');
@@ -1362,11 +1423,6 @@
                 </div>`;
             return;
         }
-        if (user.role === 'SELLER') {
-            area.innerHTML = '';
-            return;
-        }
-
         // Check if current user already has a review (use myReview from product response)
         if (myReview) {
             area.innerHTML = `

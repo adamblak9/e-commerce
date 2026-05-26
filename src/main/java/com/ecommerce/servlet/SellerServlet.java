@@ -1,5 +1,8 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderItem;
+import com.ecommerce.entity.User;
 import com.ecommerce.filter.RoleGuard;
 import com.ecommerce.util.JPAUtil;
 
@@ -107,34 +110,30 @@ public class SellerServlet extends BaseServlet {
             */
             else if (pathInfo.equals("/orders")) {
 
-                List<Object[]> rows = em.createNativeQuery(
-                                "SELECT DISTINCT " +
-                                        "o.id, o.status, o.created_at, " +
-                                        "u.first_name, u.last_name " +
-                                        "FROM orders o " +
-                                        "JOIN users u ON u.id=o.user_id " +
-                                        "JOIN order_items oi ON oi.order_id=o.id " +
-                                        "JOIN products p ON p.id=oi.product_id " +
-                                        "WHERE p.seller_id=:sid " +
-                                        "ORDER BY o.created_at DESC")
+                List<Order> orders = em.createQuery(
+                                "SELECT DISTINCT o FROM Order o, OrderItem oi, Product p " +
+                                        "WHERE oi.orderId = o.id " +
+                                        "AND p.id = oi.productId " +
+                                        "AND p.sellerId = :sid " +
+                                        "ORDER BY o.createdAt DESC",
+                                Order.class)
                         .setParameter("sid", sellerId)
                         .getResultList();
 
                 List<Map<String,Object>> result =
                         new ArrayList<>();
 
-                for(Object[] row : rows){
+                for(Order o : orders){
 
-                    Long orderId =
-                            ((Number)row[0]).longValue();
+                    Long orderId = o.getId();
 
-                    List<Object[]> items =
-                            em.createNativeQuery(
-                                            "SELECT oi.product_name, oi.quantity, oi.price " +
-                                                    "FROM order_items oi " +
-                                                    "JOIN products p ON p.id = oi.product_id " +
-                                                    "WHERE oi.order_id = :oid " +
-                                                      "AND p.seller_id = :sid")
+                    List<OrderItem> items =
+                            em.createQuery(
+                                            "SELECT i FROM OrderItem i, Product p " +
+                                                    "WHERE i.orderId = :oid " +
+                                                    "AND p.id = i.productId " +
+                                                    "AND p.sellerId = :sid",
+                                            OrderItem.class)
                                     .setParameter("oid", orderId)
                                     .setParameter("sid", sellerId)
                                     .getResultList();
@@ -145,16 +144,13 @@ public class SellerServlet extends BaseServlet {
                     List<Map<String,Object>> itemList =
                             new ArrayList<>();
 
-                    for(Object[] item : items){
+                    for(OrderItem item : items){
 
-                        String name =
-                                item[0].toString();
+                        String name = item.getProductName();
 
-                        Integer qty =
-                                ((Number)item[1]).intValue();
+                        Integer qty = item.getQuantity();
 
-                        BigDecimal price =
-                                new BigDecimal(item[2].toString());
+                        BigDecimal price = item.getPrice();
 
                         BigDecimal subtotal =
                                 price.multiply(
@@ -174,15 +170,17 @@ public class SellerServlet extends BaseServlet {
                         itemList.add(m);
                     }
 
-                    String customerName =
-                            (row[3]+" "+row[4]).trim();
+                    User customer = em.find(User.class, o.getUserId());
+                    String customerName = customer != null
+                            ? (customer.getFirstName() + " " + customer.getLastName()).trim()
+                            : "Customer #" + o.getUserId();
 
                     Map<String,Object> order =
                             new LinkedHashMap<>();
 
                     order.put("id", orderId);
-                    order.put("status", row[1].toString());
-                    order.put("createdAt", row[2].toString());
+                    order.put("status", o.getStatus().name());
+                    order.put("createdAt", o.getCreatedAt() != null ? o.getCreatedAt().toString() : null);
                     order.put("customerName", customerName);
                     order.put("sellerTotal", sellerTotal);
                     order.put("items", itemList);

@@ -478,7 +478,7 @@
     <a class="brand" href="store.html">Shop<span>Ease</span></a>
     <div class="nav-links">
         <a href="store.html">Store</a>
-        <a href="dashboard.html">Dashboard</a>
+        <span id="dashboardNavLink"></span>
         <a href="profile.html" class="active">Profile</a>
         <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
     </div>
@@ -672,6 +672,16 @@
         document.getElementById('email').value = u.email || '';
         document.getElementById('phoneNumber').value = u.phoneNumber || '';
         document.getElementById('role').value = u.role || '';
+
+        // Show dashboard link only for SELLER and ADMIN
+        const dashEl = document.getElementById('dashboardNavLink');
+        if (dashEl) {
+            if (role === 'SELLER') {
+                dashEl.innerHTML = '<a href="products.html">Dashboard</a>';
+            } else if (role === 'ADMIN') {
+                dashEl.innerHTML = '<a href="admin.html">Dashboard</a>';
+            }
+        }
     }
 
     function formatDate(iso) {

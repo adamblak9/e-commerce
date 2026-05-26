@@ -72,15 +72,7 @@ public class ReviewServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
         Long userId = (Long) req.getAttribute("userId");
-        String role = (String) req.getAttribute("role");
-
         if (userId == null) { sendError(res, 401, "Authentication required"); return; }
-
-        // Only customers (and admins) can leave reviews
-        if ("SELLER".equals(role)) {
-            sendError(res, 403, "Sellers cannot review products");
-            return;
-        }
 
         try {
             long[] ids = parseProductAndReviewId(req);
