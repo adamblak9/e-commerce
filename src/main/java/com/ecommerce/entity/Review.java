@@ -63,7 +63,7 @@ public class Review {
 
     public Review() {}
 
-    public Review(Long productId, Long userId, Integer rating, String comment) {
+    public Review(Long productId, Long userId, int rating, String comment) {
         this.productId = productId;
         this.userId    = userId;
         this.rating    = rating;
@@ -95,6 +95,7 @@ public class Review {
 
     public Integer getRating()                { return rating; }
     public void    setRating(Integer v)       { this.rating = v; }
+    public void    setRating(int v)           { this.rating = Integer.valueOf(v); }
 
     public String  getComment()               { return comment; }
     public void    setComment(String v)       { this.comment = v; }

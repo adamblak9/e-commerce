@@ -47,7 +47,11 @@ public class ReviewService {
                 throw new IllegalStateException("You have already reviewed this product");
             }
 
-            Review review = new Review(productId, userId, rating, comment);
+            Review review = new Review();
+            review.setProductId(productId);
+            review.setUserId(userId);
+            review.setRating(rating);
+            review.setComment(comment);
             repo.save(review);
             em.getTransaction().commit();
 
