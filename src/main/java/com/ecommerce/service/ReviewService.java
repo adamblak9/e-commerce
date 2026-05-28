@@ -95,6 +95,7 @@ public class ReviewService {
                                 .orElse("User #" + r.getUserId());
                         m.put("userName",  name);
                         m.put("rating",    r.getRating());
+                        m.put("comment",   r.getComment());
                         // comment intentionally omitted — visible only to its author via myReview
                         m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null);
                         return m;
