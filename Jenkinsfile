@@ -23,10 +23,10 @@ pipeline {
                 echo '📥 Pulling latest code...'
                 checkout scm
                 script {
-                    env.GIT_SHORT_SHA = sh(
+                    env.GIT_SHORT_SHA = bat(
                         script: 'git rev-parse --short HEAD',
                         returnStdout: true
-                    ).trim()
+                    ).trim().readLines().last()
                     echo "Commit: ${env.GIT_SHORT_SHA}"
                 }
             }
@@ -35,7 +35,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo '🔨 Building WAR with Maven...'
-                sh 'mvn clean package -DskipTests=true --batch-mode'
+                bat 'mvn clean package -DskipTests=true --batch-mode'
             }
             post {
                 success {
@@ -47,7 +47,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
-                sh 'mvn test --batch-mode'
+                bat 'mvn test --batch-mode'
             }
             post {
                 always {
@@ -73,8 +73,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying with docker-compose...'
-                sh """
-                    export DOCKER_TAG=${DOCKER_TAG}
+                bat """
+                    set DOCKER_TAG=${DOCKER_TAG}
+                    set DOCKER_IMAGE=${DOCKER_IMAGE}
                     docker-compose -f ${COMPOSE_FILE} down
                     docker-compose -f ${COMPOSE_FILE} up -d --build
                     docker-compose -f ${COMPOSE_FILE} ps
@@ -94,16 +95,16 @@ pipeline {
             script { notifySlack('FAILURE') }
         }
         always {
-            sh 'docker image prune -f'
+            bat 'docker image prune -f'
             cleanWs()
         }
     }
 }
 
 def notifySlack(String status) {
-    def emoji   = status == 'SUCCESS' ? '✅' : '❌'
+    def emoji   = status == 'SUCCESS' ? 'SUCCESS' : 'FAILURE'
     def color   = status == 'SUCCESS' ? '#36a64f' : '#ff0000'
-    def message = "${emoji} *${status}* — commerce | Build #${env.BUILD_NUMBER} | Commit: ${env.GIT_SHORT_SHA} | <${env.BUILD_URL}|View in Jenkins>"
+    def message = "${emoji} - commerce | Build #${env.BUILD_NUMBER} | Commit: ${env.GIT_SHORT_SHA} | ${env.BUILD_URL}"
     def payload = groovy.json.JsonOutput.toJson([
         attachments: [[
             color: color,
@@ -112,6 +113,6 @@ def notifySlack(String status) {
     ])
 
     withCredentials([string(credentialsId: SLACK_CREDS, variable: 'WEBHOOK')]) {
-        sh "curl -s -X POST \"\$WEBHOOK\" -H 'Content-type: application/json' --data '${payload}'"
+        bat "curl -s -X POST \"%WEBHOOK%\" -H \"Content-type: application/json\" --data \"%payload%\""
     }
 }
