@@ -12,6 +12,9 @@ pipeline {
         COMPOSE_FILE = 'docker-compose.yml'
         DOCKER_CREDS = 'dockerhub-credentials'
         SLACK_CREDS  = 'slack-webhook-url'
+        // Augmente les timeouts Docker
+        DOCKER_CLIENT_TIMEOUT = '120'
+        COMPOSE_HTTP_TIMEOUT  = '120'
     }
 
     options {
@@ -61,13 +64,33 @@ pipeline {
             }
         }
 
+        stage('Clean Docker Cache') {
+            steps {
+                echo '🧹 Nettoyage du cache Docker pour éviter les layers corrompus...'
+                bat 'docker system prune -f'
+            }
+        }
+
         stage('Docker Build & Push') {
             steps {
                 echo '🐳 Building and pushing Docker image...'
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDS) {
+                        // Build avec un tag explicite
                         def image = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
-                        image.push()
+
+                        // Push avec retry et désactivation du content trust
+                        retry(2) {
+                            try {
+                                image.push()
+                            } catch (Exception e) {
+                                echo "⚠️ Push normal échoué, tentative avec --disable-content-trust..."
+                                bat "docker push --disable-content-trust ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                            }
+                        }
+
+                        // Push du tag 'latest' séparément
+                        echo "🏷️ Pushing tag 'latest'..."
                         image.push('latest')
                     }
                 }
@@ -115,7 +138,6 @@ def notifySlack(String status) {
         ]]
     ])
 
-    // Write payload to a temp file to avoid Windows variable escaping issues
     writeFile file: 'slack_payload.json', text: payload
 
     withCredentials([string(credentialsId: SLACK_CREDS, variable: 'WEBHOOK')]) {
