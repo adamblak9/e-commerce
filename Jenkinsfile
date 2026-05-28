@@ -104,12 +104,14 @@ def notifySlack(String status) {
     def emoji   = status == 'SUCCESS' ? '✅' : '❌'
     def color   = status == 'SUCCESS' ? '#36a64f' : '#ff0000'
     def message = "${emoji} *${status}* — commerce | Build #${env.BUILD_NUMBER} | Commit: ${env.GIT_SHORT_SHA} | <${env.BUILD_URL}|View in Jenkins>"
+    def payload = groovy.json.JsonOutput.toJson([
+        attachments: [[
+            color: color,
+            text: message
+        ]]
+    ])
 
     withCredentials([string(credentialsId: SLACK_CREDS, variable: 'WEBHOOK')]) {
-        sh """
-            curl -s -X POST ${WEBHOOK} \\
-              -H 'Content-type: application/json' \\
-              --data '{"attachments":[{"color":"${color}","text":${groovy.json.JsonOutput.toJson(message)}}]}'
-        """
+        sh "curl -s -X POST \"\$WEBHOOK\" -H 'Content-type: application/json' --data '${payload}'"
     }
 }
