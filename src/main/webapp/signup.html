@@ -560,7 +560,7 @@
                 localStorage.setItem('user',  JSON.stringify(data.user));
 
                 const successEl = document.getElementById('successMsg');
-                const destination = data.user.role === 'SELLER' ? 'seller-dashboard.html' : 'dashboard.html';
+                const destination = data.user.role === 'SELLER' ? 'products.html' : 'dashboard.html';
                 successEl.textContent = `Welcome, ${data.user.firstName}! Redirecting…`;
                 successEl.classList.add('show');
 

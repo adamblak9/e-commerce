@@ -1,107 +1,204 @@
-# ShopEase — E-Commerce Platform
+# ShopEase - E-Commerce Platform
 
-A full-stack Java EE e-commerce application running on Tomcat + SQL Server via Docker.
+ShopEase is a Java Servlet e-commerce application with a vanilla HTML/CSS/JS frontend, JWT authentication, and SQL Server storage. The project is containerized with Docker Compose so it can run without a local Tomcat or SQL Server installation.
 
----
+## Quick Start
 
-## 🚀 Quick Start
+From the project root:
 
-```bash
-docker-compose up --build
+```powershell
+docker compose up -d --build
 ```
 
-Visit → http://localhost:8080/login.html
+Open:
 
----
-
-## 🏗️ Architecture
-
-- **Backend** — Java EE (Servlets + JPA/Hibernate), deployed as `ROOT.war` on Tomcat
-- **Frontend** — Vanilla HTML/CSS/JS
-- **Database** — Microsoft SQL Server 2022
-- **Auth** — JWT (Bearer token, stored in `localStorage`)
-- **Orchestration** — Docker Compose (Tomcat on port `8080`, SQL Server on port `1433`)
-
----
-
-## 👤 Creating the First Admin Account
-
-Since there is no admin by default, follow these steps after the app is running:
-
-### Step 1 — Sign up normally
-
-Go to http://localhost:8080/signup.html and create your account.
-
-### Step 2 — Find your SQL Server container
-
-```bash
-docker ps
+```text
+http://localhost:8080/login.html
 ```
 
-Look for `commerce-sqlserver-1` in the list.
+If your Docker installation uses the older command, replace `docker compose` with `docker-compose`.
 
-### Step 3 — Promote your account to ADMIN
+## Demo Data Setup
 
-Run this single command (replace the email):
+Use this if you want a clean database with ready-to-test users, sellers, products, orders, ratings, and comments.
 
-```bash
-docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "Admin123!" \
-  -Q "USE ecommerce_db; UPDATE users SET role='ADMIN' WHERE email='adamarbai170@gmail.com';"
+The seed file is:
+
+```text
+src/main/resources/seed-data.sql
 ```
-one ligne bash admin
-docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -Q "USE ecommerce_db; UPDATE users SET role='ADMIN' WHERE email='adamarbai170@gmail.com';"
 
-print users
-docker exec -it commerce-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -Q "USE ecommerce_db; SELECT email, role FROM users;"
-> If that path doesn't work, try `/opt/mssql-tools18/bin/sqlcmd` and add `-C` at the end.
+### 1. Delete the old database volume
 
-### Step 4 — Log in and open the Admin Dashboard
+Warning: this deletes the current SQL Server data for this Docker Compose project.
 
-Go to → http://localhost:8080/admin.html
+```powershell
+docker compose down -v
+```
 
----
+### 2. Start SQL Server
 
-## 🛡️ User Roles
+```powershell
+docker compose up -d sqlserver
+```
+
+Check that the SQL Server container is healthy:
+
+```powershell
+docker compose ps
+```
+
+### 3. Create the empty database
+
+```powershell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -Q "IF DB_ID('ecommerce_db') IS NULL CREATE DATABASE ecommerce_db;"
+```
+
+### 4. Start the app so Hibernate creates the tables
+
+```powershell
+docker compose up -d --build app
+```
+
+Wait about 20-40 seconds. You can check the logs with:
+
+```powershell
+docker compose logs app
+```
+
+Before seeding, verify that Hibernate created the tables:
+
+```powershell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -d ecommerce_db -Q "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME;"
+```
+
+You should see tables like `users`, `products`, `orders`, `order_items`, `reviews`, and `categories`. If `reviews` is missing, wait a little more and check `docker compose logs app`.
+
+### 5. Copy the seed file into SQL Server
+
+```powershell
+docker compose cp .\src\main\resources\seed-data.sql sqlserver:/tmp/seed-data.sql
+```
+
+### 6. Run the seed file
+
+```powershell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -d ecommerce_db -i /tmp/seed-data.sql
+```
+
+### 7. Verify the seed
+
+List users:
+
+```powershell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -d ecommerce_db -Q "SELECT email, role FROM users;"
+```
+
+Count products:
+
+```powershell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Admin123!" -C -d ecommerce_db -Q "SELECT COUNT(*) AS products_count FROM products;"
+```
+
+## Demo Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| ADMIN | `admin@gmail.com` | `admin123` |
+| CUSTOMER | `amina.customer@gmail.com` | `customer123` |
+| CUSTOMER | `youssef.customer@gmail.com` | `customer123` |
+| CUSTOMER | `lina.customer@gmail.com` | `customer123` |
+| SELLER | `nora.seller@gmail.com` | `seller123` |
+| SELLER | `samir.seller@gmail.com` | `seller123` |
+| SELLER | `mira.seller@gmail.com` | `seller123` |
+
+## Common Commands
+
+Start or rebuild everything:
+
+```powershell
+docker compose up -d --build
+```
+
+Rebuild only the web app after HTML/CSS/Java changes:
+
+```powershell
+docker compose up -d --build app
+```
+
+Stop containers but keep the database volume:
+
+```powershell
+docker compose down
+```
+
+Stop containers and delete the database volume:
+
+```powershell
+docker compose down -v
+```
+
+View app logs:
+
+```powershell
+docker compose logs app
+```
+
+View SQL Server logs:
+
+```powershell
+docker compose logs sqlserver
+```
+
+## Application URLs
+
+| Page | URL |
+|------|-----|
+| Home | `http://localhost:8080/index.html` |
+| Login | `http://localhost:8080/login.html` |
+| Sign up | `http://localhost:8080/signup.html` |
+| Store | `http://localhost:8080/store.html` |
+| Cart | `http://localhost:8080/cart.html` |
+| Customer orders | `http://localhost:8080/Orders.html` |
+| Profile | `http://localhost:8080/profile.html` |
+| Seller dashboard | `http://localhost:8080/products.html` |
+| Admin dashboard | `http://localhost:8080/admin.html` |
+
+## User Roles
 
 | Role | Access |
 |------|--------|
-| `CUSTOMER` | Browse store, cart, orders, profile |
-| `SELLER` | All of the above + manage own products |
-| `ADMIN` | Full admin dashboard (users, categories, products, orders) |
+| CUSTOMER | Browse the store, use cart, place orders, manage profile |
+| SELLER | Customer access plus seller product and order tools |
+| ADMIN | Full admin dashboard for users, categories, products, and orders |
 
----
+## API Summary
 
-## 📋 Admin Dashboard Features
+All API routes are served from:
 
-| Section | What you can do |
-|---------|-----------------|
-| **Dashboard** | Stats overview — users, revenue, orders, products |
-| **Users** | List, search, filter, change role/status, reset password, deactivate |
-| **Categories** | Add, edit, delete product categories with icon & description |
-| **Products** | Browse all products, deactivate any listing |
-| **Orders** | View all orders, update order status |
-
----
-
-## 🔌 API Reference
+```text
+http://localhost:8080/api
+```
 
 ### Auth
+
 | Method | Endpoint | Access |
 |--------|----------|--------|
 | POST | `/api/auth/signup` | Public |
 | POST | `/api/auth/login` | Public |
 
 ### Products
+
 | Method | Endpoint | Access |
 |--------|----------|--------|
 | GET | `/api/products` | Public |
 | GET | `/api/products/{id}` | Public |
 | POST | `/api/products` | SELLER, ADMIN |
-| PUT | `/api/products/{id}` | Owner SELLER, ADMIN |
-| DELETE | `/api/products/{id}` | Owner SELLER, ADMIN |
+| PUT | `/api/products/{id}` | Product owner SELLER, ADMIN |
+| DELETE | `/api/products/{id}` | Product owner SELLER, ADMIN |
 
 ### Categories
+
 | Method | Endpoint | Access |
 |--------|----------|--------|
 | GET | `/api/categories` | Public |
@@ -111,7 +208,18 @@ Go to → http://localhost:8080/admin.html
 | PUT | `/api/categories/{id}` | ADMIN |
 | DELETE | `/api/categories/{id}` | ADMIN |
 
+### Orders and Cart
+
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/api/orders` | Logged in user |
+| GET | `/api/orders/customer` | Logged in user |
+| GET | `/api/orders/{id}` | Logged in user |
+| POST | `/api/cart` | Logged in user |
+| GET | `/api/cart` | Logged in user |
+
 ### Admin
+
 | Method | Endpoint | Access |
 |--------|----------|--------|
 | GET | `/api/admin/stats` | ADMIN |
@@ -122,85 +230,54 @@ Go to → http://localhost:8080/admin.html
 | PUT | `/api/admin/users/{id}/reset-password` | ADMIN |
 | DELETE | `/api/admin/users/{id}` | ADMIN |
 
-### Orders & Cart
-| Method | Endpoint | Access |
-|--------|----------|--------|
-| POST | `/api/orders` | AUTH |
-| GET | `/api/orders/customer` | AUTH |
-| GET | `/api/orders/{id}` | AUTH |
-| POST | `/api/cart` | AUTH |
-| GET | `/api/cart` | AUTH |
+## Architecture
 
----
+| Layer | Technology |
+|-------|------------|
+| Frontend | Vanilla HTML, CSS, JavaScript |
+| Backend | Java Servlets, JPA/Hibernate |
+| Database | Microsoft SQL Server 2022 |
+| Auth | JWT stored in `localStorage` |
+| Runtime | Tomcat 10 in Docker |
+| Orchestration | Docker Compose |
 
-## 🐳 Docker Details
+Docker services:
 
-```yaml
-Services:
-  app   → Tomcat 10, port 8080
-  db    → SQL Server 2022, port 1433
-```
+| Service | Purpose | Port |
+|---------|---------|------|
+| `app` | Tomcat web application | `8080` |
+| `sqlserver` | SQL Server database | internal, exposed inside Docker network |
 
-Rebuild after code changes:
-```bash
-docker-compose up --build
-```
+## Project Structure
 
-Stop everything:
-```bash
-docker-compose down
-```
-
-Wipe database and restart fresh:
-```bash
-docker-compose down -v
-docker-compose up --build
-```
-
----
-
-## 📁 Project Structure
-
-```
+```text
 src/main/
-├── java/com/ecommerce/
-│   ├── entity/          # JPA entities (User, Product, Order, Category…)
-│   ├── repository/      # Data access layer
-│   ├── service/         # Business logic
-│   ├── servlet/         # REST API endpoints
-│   ├── filter/          # JWT auth filter, role guard
-│   └── util/            # JWT, password, JPA utilities
-├── webapp/
-│   ├── admin.html       # Admin dashboard
-│   ├── store.html       # Customer storefront
-│   ├── auth.js          # Client-side auth guard
-│   └── …               # Other pages
-└── resources/
-    └── META-INF/
-        └── persistence.xml
+  java/com/ecommerce/
+    entity/       JPA entities
+    repository/   Data access
+    service/      Business logic
+    servlet/      REST endpoints
+    filter/       JWT and role guards
+    util/         JWT, password, JPA helpers
+  resources/
+    META-INF/persistence.xml
+    seed-data.sql
+  webapp/
+    index.html
+    store.html
+    product.html
+    products.html
+    admin.html
+    cart.html
+    Orders.html
+    profile.html
+    login.html
+    signup.html
 ```
-Docker Migration: Complete containerization of ShopEase platform
 
-🔄 Architecture Changes:
-- Application now runs entirely in Docker containers
-- Tomcat (port 8080) + SQL Server (port 1433) orchestrated via docker-compose
-- WAR deployed as ROOT.war (no /ecommerce context path)
+## Notes
 
-🔧 Code Updates:
-- Frontend: Changed all fetch() URLs from 'http://localhost:8080/ecommerce/api/*' to '/api/*'
-- Backend: persistence.xml JDBC URL updated from 'localhost' to 'commerce-sqlserver-1'
-- JwtFilter: Public routes properly configured (/api/auth/login, /api/auth/signup)
-
-📦 New Files:
-- Dockerfile: Multi-stage build for Tomcat deployment ..
-- docker-compose.yml: Service orchestration with automatic networking
-
-✅ Benefits:
-- No local Tomcat or SQL Server installation required
-- One command setup: docker-compose up --build
-- Consistent environment across all team members
-- Easy onboarding for new developers
-
-🚀 Quick Start:
-1. docker-compose up --build
-2. Visit http://localhost:8080/login.html
+- The WAR is deployed as the root application, so pages are opened directly from `http://localhost:8080/...`.
+- Frontend API calls use relative paths like `/api/products`.
+- The database name is `ecommerce_db`.
+- The SQL Server `sa` password in Docker Compose is `Admin123!`.

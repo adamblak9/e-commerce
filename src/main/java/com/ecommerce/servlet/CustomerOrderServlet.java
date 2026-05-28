@@ -25,7 +25,6 @@ public class CustomerOrderServlet extends BaseServlet {
 
         Long userId = RoleGuard.getUserId(req);
         if (userId == null) { sendError(res, 401, "Login required"); return; }
-        if (!RoleGuard.require(req, res, "CUSTOMER")) return;
 
         String pathInfo = req.getPathInfo();
         EntityManager em = JPAUtil.getEntityManager();

@@ -436,7 +436,22 @@
     // ── Load orders ──
     async function loadOrders() {
         try {
-            allOrders = await apiFetch('/seller/orders');
+            let sellerOrders = [];
+            try {
+                sellerOrders = await apiFetch('/seller/orders');
+            } catch (sellerError) {
+                console.warn('Seller sales orders unavailable:', sellerError);
+            }
+            allOrders = sellerOrders;
+            if (!sellerOrders.length) {
+                const ownOrders = await apiFetch('/customer/orders');
+                allOrders = ownOrders.map(o => ({
+                    ...o,
+                    customerName: ((currentUser.firstName || '') + ' ' + (currentUser.lastName || '')).trim() || currentUser.username || 'You',
+                    sellerTotal: o.totalAmount,
+                    items: o.items || []
+                }));
+            }
             renderRecentOrders(allOrders.slice(0, 5));
             renderAllOrders(allOrders);
         } catch (e) {

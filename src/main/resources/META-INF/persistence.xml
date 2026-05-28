@@ -12,6 +12,7 @@
         <class>com.ecommerce.entity.Category</class>
         <class>com.ecommerce.entity.Order</class>
         <class>com.ecommerce.entity.OrderItem</class>
+        <class>com.ecommerce.entity.Review</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.url"

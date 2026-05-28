@@ -445,9 +445,7 @@
             <div class="nav-item" id="goToStore">
                 <span class="nav-icon">🏪</span> Go to Store
             </div>
-            <div class="nav-item" onclick="window.location.href='products.html'">
-                <span class="nav-icon">📦</span> Seller Products View
-            </div>
+
         </nav>
 
         <div class="sidebar-footer">
@@ -939,6 +937,7 @@
                     <div style="display:flex;gap:.4rem">
                         <button class="btn btn-ghost btn-xs" onclick='openEditUser(${JSON.stringify(u)})'>Edit</button>
                         <button class="btn btn-danger btn-xs" onclick="deactivateUser(${u.id},'${escHtml(u.fullName)}')">Ban</button>
+                        <button class="btn btn-danger btn-xs" onclick="deleteUser(${u.id},'${escHtml(u.fullName)}')">Delete</button>
                     </div>
                 </td>
             </tr>`).join('');
@@ -991,6 +990,13 @@
                 loadUsers();
             } catch(e) { toast(e.message, 'error'); }
         });
+    }
+
+    function deleteUser(id, name) {
+        if (!confirm('Permanently delete "' + name + '"? This cannot be undone.')) return;
+        apiFetch('/admin/users/' + id, { method: 'DELETE' })
+            .then(() => { toast('User deleted', 'success'); loadUsers(); })
+            .catch(e => toast(e.message, 'error'));
     }
 
     // ────────────────────────────────

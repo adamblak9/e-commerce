@@ -33,11 +33,18 @@ public class ProductServlet extends BaseServlet {
 
         String pathInfo = req.getPathInfo();
 
+        // Delegate review sub-paths to ReviewServlet
+        if (pathInfo != null && pathInfo.contains("/reviews")) {
+            new com.ecommerce.servlet.ReviewServlet().doGet(req, res);
+            return;
+        }
+
         try {
             if (pathInfo != null && !pathInfo.equals("/")) {
                 Long id = parseId(pathInfo);
-                Map<String, Object> product = productService.getProductById(id);
-                if ("SELLER".equals(role) && userId != null && !product.get("sellerId").equals(userId)) {
+                // Pass userId so the caller's own review/comment is embedded in the response
+                Map<String, Object> product = productService.getProductById(id, userId);
+                if (false && "SELLER".equals(role) && userId != null && !product.get("sellerId").equals(userId)) {
                     sendError(res, 403, "Accès interdit");
                     return;
                 }
@@ -63,7 +70,7 @@ public class ProductServlet extends BaseServlet {
                 return;
             }
 
-            if ("SELLER".equals(role) && userId != null) {
+            if (false && "SELLER".equals(role) && userId != null) {
                 if (seller != null && !seller.isBlank() && !seller.equals(String.valueOf(userId))) {
                     sendError(res, 403, "Vous ne pouvez voir que vos propres produits");
                     return;
@@ -112,6 +119,13 @@ public class ProductServlet extends BaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        // Delegate review sub-paths to ReviewServlet
+        String pathInfo = req.getPathInfo();
+        if (pathInfo != null && pathInfo.contains("/reviews")) {
+            new com.ecommerce.servlet.ReviewServlet().doPost(req, res);
+            return;
+        }
+
         Map<String, String> claims = extractClaims(req, res);
         if (claims == null) return;
 
@@ -158,10 +172,15 @@ public class ProductServlet extends BaseServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo != null && pathInfo.contains("/reviews")) {
+            new com.ecommerce.servlet.ReviewServlet().doPut(req, res);
+            return;
+        }
+
         Map<String, String> claims = extractClaims(req, res);
         if (claims == null) return;
 
-        String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             sendError(res, 400, "Product ID is required");
             return;
@@ -208,15 +227,19 @@ public class ProductServlet extends BaseServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo != null && pathInfo.contains("/reviews")) {
+            new com.ecommerce.servlet.ReviewServlet().doDelete(req, res);
+            return;
+        }
+
         Map<String, String> claims = extractClaims(req, res);
         if (claims == null) return;
 
-        String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             sendError(res, 400, "Product ID is required");
             return;
         }
-
         try {
             Long id            = parseId(pathInfo);
             Long requesterId   = Long.parseLong(claims.get("userId"));

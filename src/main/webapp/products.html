@@ -404,10 +404,38 @@
 
     async function loadProducts() {
         try {
-            allProds = await apiFetch('/products');
+            allProds = await apiFetch(`/products?seller=${currentUser.id}`);
             renderProducts(allProds);
             updateProdStats(allProds);
         } catch(e) {}
+    }
+
+    async function loadOrders() {
+        try {
+            allOrders = await apiFetch('/seller/orders');
+            renderOrders('recentOrdersBody', allOrders.slice(0, 5));
+            renderOrders('allOrdersBody', allOrders);
+        } catch(e) {
+            const row = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">${esc(e.message || 'Could not load orders')}</div></div></td></tr>`;
+            document.getElementById('recentOrdersBody').innerHTML = row;
+            document.getElementById('allOrdersBody').innerHTML = row;
+        }
+    }
+
+    function renderOrders(tbodyId, orders) {
+        const tbody = document.getElementById(tbodyId);
+        if (!orders.length) {
+            tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No seller orders yet.</div></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = orders.map(o => `
+            <tr>
+                <td>#${o.id}</td>
+                <td><strong>${esc(o.customerName || 'Customer')}</strong></td>
+                <td style="color:var(--success);font-weight:600">$${parseFloat(o.sellerTotal || 0).toFixed(2)}</td>
+                <td><span class="badge badge-${String(o.status || '').toLowerCase()}">${esc(o.status || '')}</span></td>
+                <td>${fmtDate(o.createdAt)}</td>
+            </tr>`).join('');
     }
 
     function updateProdStats(prods) {
@@ -529,6 +557,16 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        return new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
     // Navigation Listeners
     document.querySelectorAll('.nav-item[data-page]').forEach(item => {
         item.addEventListener('click', () => navigateTo(item.dataset.page));
@@ -537,6 +575,7 @@
     // Init
     loadStats();
     loadProducts();
+    loadOrders();
     loadCategories();
 </script>
 </body>
