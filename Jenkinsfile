@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven'
+    }
+
     environment {
         APP_NAME     = 'commerce'
         DOCKER_IMAGE = 'adam969/commerce'
@@ -102,9 +106,8 @@ pipeline {
 }
 
 def notifySlack(String status) {
-    def emoji   = status == 'SUCCESS' ? 'SUCCESS' : 'FAILURE'
     def color   = status == 'SUCCESS' ? '#36a64f' : '#ff0000'
-    def message = "${emoji} - commerce | Build #${env.BUILD_NUMBER} | Commit: ${env.GIT_SHORT_SHA} | ${env.BUILD_URL}"
+    def message = "${status} - commerce | Build #${env.BUILD_NUMBER} | Commit: ${env.GIT_SHORT_SHA} | ${env.BUILD_URL}"
     def payload = groovy.json.JsonOutput.toJson([
         attachments: [[
             color: color,
@@ -112,7 +115,10 @@ def notifySlack(String status) {
         ]]
     ])
 
+    // Write payload to a temp file to avoid Windows variable escaping issues
+    writeFile file: 'slack_payload.json', text: payload
+
     withCredentials([string(credentialsId: SLACK_CREDS, variable: 'WEBHOOK')]) {
-        bat "curl -s -X POST \"%WEBHOOK%\" -H \"Content-type: application/json\" --data \"%payload%\""
+        bat 'curl -s -X POST "%WEBHOOK%" -H "Content-type: application/json" --data @slack_payload.json'
     }
 }
