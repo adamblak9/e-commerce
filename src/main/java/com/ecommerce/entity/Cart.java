@@ -13,7 +13,7 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // One cart per user — uniqu constraint ensures this
+    // One cart per user — unique constraint ensures this
     @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
 
