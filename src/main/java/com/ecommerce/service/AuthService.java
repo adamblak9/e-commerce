@@ -14,7 +14,7 @@ import java.util.Map;
 public class AuthService {
 
     // -------------------------------------------------------------------------
-    // Signup
+    // Signup good
     // -------------------------------------------------------------------------
 
     public Map<String, Object> signup(String username, String email,
