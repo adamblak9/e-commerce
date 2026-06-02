@@ -1,5 +1,6 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.servlet.MetricsServlet;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.Payment;
 import com.ecommerce.service.PaymentService;
@@ -83,7 +84,7 @@ public class PaymentServlet extends BaseServlet {
             res.put("transactionId", payment.getTransactionId());
             res.put("message",       "Payment processed and stock updated");
             sendJson(resp, 200, res);
-
+            MetricsServlet.paymentsTotal.incrementAndGet();
         } catch (Exception e) {
             e.printStackTrace();
             sendJson(resp, 500, Map.of("success", false, "message", e.getMessage()));

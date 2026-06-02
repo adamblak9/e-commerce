@@ -1,5 +1,6 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.servlet.MetricsServlet;
 import com.ecommerce.service.AuthService;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,7 +49,7 @@ public class SignupServlet extends BaseServlet {
             Map<String, Object> response = authService.signup(
                     username, email, password, firstName, lastName, phone, role);
             sendJson(res, 201, response);
-
+            MetricsServlet.registrationsTotal.incrementAndGet();
         } catch (IllegalArgumentException e) {
             sendError(res, 409, e.getMessage());
         } catch (Exception e) {

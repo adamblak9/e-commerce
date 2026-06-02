@@ -1,6 +1,7 @@
 package com.ecommerce.servlet;
 
 import com.ecommerce.service.AuthService;
+import com.ecommerce.servlet.MetricsServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,12 +47,13 @@ public class LoginServlet extends BaseServlet {
             //response.remove("token");
 
             sendJson(res, 200, response);
-
+            MetricsServlet.loginSuccessTotal.incrementAndGet();
         } catch (SecurityException e) {
             sendError(res, 401, e.getMessage());
-
+            MetricsServlet.loginFailureTotal.incrementAndGet();
         } catch (Exception e) {
             sendError(res, 500, "An unexpected error occurred");
+            MetricsServlet.loginFailureTotal.incrementAndGet();
         }
     }
 

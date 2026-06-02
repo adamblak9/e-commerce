@@ -1,5 +1,6 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.servlet.MetricsServlet;
 import com.ecommerce.filter.RoleGuard;
 import com.ecommerce.service.CartService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -86,6 +87,7 @@ public class CartServlet extends BaseServlet {
 
             sendJson(res, 200,
                     cartService.addItem(userId, productId, productName, price, quantity, imageUrl));
+            MetricsServlet.cartAddedTotal.incrementAndGet();
         } catch (IllegalStateException e) {
             sendError(res, 409, e.getMessage()); // out of stock / limit exceeded
         } catch (IllegalArgumentException e) {

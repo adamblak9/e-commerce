@@ -1,5 +1,6 @@
 package com.ecommerce.servlet;
 
+import com.ecommerce.servlet.MetricsServlet;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.filter.RoleGuard;
@@ -115,7 +116,7 @@ public class OrderServlet extends BaseServlet {
             }
 
             Order order = orderService.createOrder(userId, cartItems, totalAmount, address);
-
+            MetricsServlet.ordersCreatedTotal.incrementAndGet();
             sendJson(res, 201, Map.of(
                     "success", true,
                     "orderId", order.getId(),
