@@ -20,7 +20,7 @@
 
     <dependencies>
 
-        <!-- ── Code source à tester (vos classes) ── -->
+        <!-- ── Code source à tester () ── -->
         <!-- Copiez vos classes dans src/main/java ou ajoutez une dépendance au WAR -->
 
         <!-- ── JUnit 5 ── -->
