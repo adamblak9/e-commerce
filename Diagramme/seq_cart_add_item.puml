@@ -1,0 +1,48 @@
+@startuml Sequence_Cart_Add_Item
+autonumber
+
+actor "Client / Frontend" as Client
+box "Backend" #GhostWhite
+    participant "JwtFilter" as Filter
+    participant "CartServlet" as Servlet
+    participant "CartService" as Service
+    participant "ProductRepository" as ProdRepo
+    participant "CartRepository" as CartRepo
+end box
+
+Client -> Filter : POST /api/cart {productId, quantity}
+activate Filter
+note over Filter: Extrait userId & role du JWT\nreq.setAttribute()
+Filter -> Servlet : forward request
+deactivate Filter
+activate Servlet
+
+Servlet -> Service : addItem(userId, productId, ...)
+activate Service
+
+Service -> ProdRepo : findById(productId)
+activate ProdRepo
+ProdRepo --> Service : Product entity (avec stockQuantity)
+deactivate ProdRepo
+
+note over Service : Validation du stock disponible\nsi stock <= 0 -> Exception
+
+Service -> CartRepo : getOrCreate(userId)
+activate CartRepo
+CartRepo --> Service : Cart entity
+deactivate CartRepo
+
+alt L'article existe déjà dans le panier
+    note over Service : Augmente la quantité\n(Plafond max = stock produit)
+else Nouvel article
+    note over Service : cart.addItem(new CartItem(...))
+end
+
+Service -> CartRepo : save(cart)
+Service --> Servlet : Map (Cart JSON representation)
+deactivate Service
+
+Servlet --> Client : HTTP 200 OK (Cart JSON)
+deactivate Servlet
+
+@enduml

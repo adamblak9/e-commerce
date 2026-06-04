@@ -1,0 +1,65 @@
+@startuml
+title Diagramme de Séquence : Authentification JWT
+
+actor Client
+participant "LoginServlet" as Login
+participant "AuthService" as Auth
+participant "UserRepository" as Repo
+participant "PasswordUtil" as Pass
+participant "JwtUtil" as JWT
+database "SQL Server" as DB
+participant "JwtFilter" as Filter
+participant "ProtectedServlet" as Protected
+
+== Phase 1 : Connexion (Login) ==
+
+Client -> Login : doPost(email, password)
+activate Login
+
+Login -> Auth : login(email, password)
+activate Auth
+
+Auth -> Repo : findByEmail(email)
+activate Repo
+Repo -> DB : SELECT * FROM users WHERE email=?
+DB --> Repo : User Data
+Repo --> Auth : User Entity
+deactivate Repo
+
+Auth -> Pass : verify(password, passwordHash)
+activate Pass
+Pass --> Auth : true
+deactivate Pass
+
+Auth -> JWT : generate(userId, email, role)
+activate JWT
+JWT --> Auth : tokenString
+deactivate JWT
+
+Auth --> Login : Response (User info + token)
+deactivate Auth
+
+Login -> Login : Créer Cookie "jwt" (HttpOnly)
+Login --> Client : 200 OK (JSON + Set-Cookie)
+deactivate Login
+
+== Phase 2 : Accès à une ressource protégée ==
+
+Client -> Filter : Request GET /api/orders (Cookie jwt inclu)
+activate Filter
+
+Filter -> JWT : verify(tokenString)
+activate JWT
+JWT --> Filter : DecodedJWT (Claims: userId, role)
+deactivate JWT
+
+Filter -> Filter : req.setAttribute("userId", id)\nreq.setAttribute("role", role)
+Filter -> Protected : doFilter(request, response)
+activate Protected
+
+Protected -> Protected : roleGuard.require("ADMIN")
+Protected --> Client : 200 OK (Protected Data)
+deactivate Protected
+deactivate Filter
+
+@enduml

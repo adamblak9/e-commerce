@@ -1,0 +1,22 @@
+@startuml
+title Diagramme d'activité : Livraison Automatique (Tâche de fond)
+
+start
+:Déclenchement du Scheduler (toutes les 60s);
+:Ouvrir un EntityManager via JPAUtil;
+:Rechercher les commandes 'CONFIRMED' créées il y a plus de 3 min;
+
+if (Commandes éligibles trouvées ?) then (oui)
+  :Démarrer Transaction;
+  repeat
+    :Passer le statut à 'DELIVERED';
+    :Enregistrer la date deliveredAt (LocalDateTime.now());
+    :Logger l'auto-livraison pour l'ID commande;
+  repeat while (Encore des commandes ?)
+  :Valider la Transaction (Commit);
+else (non)
+endif
+
+:Fermer l'EntityManager;
+stop
+@enduml

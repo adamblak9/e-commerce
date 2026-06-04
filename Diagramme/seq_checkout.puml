@@ -1,0 +1,40 @@
+@startuml
+title Diagramme de Séquence : Processus de Commande et Paiement
+
+actor Client
+participant "OrderServlet" as OS
+participant "OrderService" as OServ
+participant "PaymentService" as PServ
+participant "OrderRepository" as ORepo
+database "SQL Server" as DB
+
+Client -> OS : doPost(items, total)
+activate OS
+
+OS -> OServ : createOrder(userId, items, total)
+activate OServ
+OServ -> ORepo : save(order, items)
+activate ORepo
+ORepo -> DB : Persist Order & OrderItems
+DB --> ORepo : Success
+ORepo --> OServ : Order Entity
+deactivate ORepo
+OServ --> OS : Order object
+deactivate OServ
+
+OS -> PServ : processPayment(orderId, amount, method)
+activate PServ
+PServ -> DB : Save Payment record
+PServ -> ORepo : updateStatus(orderId, CONFIRMED)
+PServ --> OS : Payment success
+deactivate PServ
+
+OS -> OServ : decrementStockForOrder(orderId)
+activate OServ
+OServ -> DB : UPDATE products SET stock = stock - qty
+OServ --> OS : Stock updated
+deactivate OServ
+
+OS --> Client : 201 Created (Order success)
+deactivate OS
+@enduml

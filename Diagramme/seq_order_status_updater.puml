@@ -1,0 +1,29 @@
+@startuml Sequence_Order_Status_Updater
+autonumber
+
+participant "Orderstatusupdater\n(Background Job)" as Job
+participant "JPAUtil / EntityManager" as JPA
+database "SQL Server" as DB
+
+note over Job : S'exécute périodiquement\ntoutes les 60 secondes via scheduleAtFixedRate()
+
+activate Job
+Job -> JPA : getEntityManager()
+activate JPA
+JPA --> Job : em
+deactivate JPA
+
+Job -> DB : SELECT o FROM Order o WHERE o.status = 'CONFIRMED' AND o.createdAt <= cutoff
+activate DB
+DB --> Job : List<Order> (commandes prêtes à être livrées)
+deactivate DB
+
+loop Pour chaque commande trouvée
+    note over Job : o.setStatus(OrderStatus.DELIVERED)\no.setDeliveredAt(LocalDateTime.now())
+    Job -> DB : Commit transaction (UPDATE)
+end
+
+Job -> JPA : em.close()
+deactivate Job
+
+@enduml

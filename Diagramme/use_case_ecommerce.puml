@@ -1,0 +1,79 @@
+@startuml
+title Diagramme de Cas d'Utilisation Complet - Plateforme E-Commerce
+
+left to right direction
+
+' --- Définition des Acteurs ---
+actor "Visiteur" as Visiteur
+actor "Client Connecté" as Client
+actor "Vendeur" as Vendeur
+actor "Administrateur" as Admin
+
+' --- Relations d'Héritage entre Acteurs ---
+' Le client hérite du visiteur
+Visiteur <|-- Client
+' Le vendeur et l'admin sont des utilisateurs connectés spécifiques
+Client <|-- Vendeur
+Client <|-- Admin
+
+rectangle "Système E-Commerce (Java EE & JPA)" {
+
+    ' --- Authentification & Profil ---
+    usecase "S'inscrire" as UC_Register
+    usecase "S'authentifier (Connexion)" as UC_Login
+    usecase "Gérer son profil personnel" as UC_Profile
+
+    ' --- Catalogue & Recherche (Public) ---
+    usecase "Consulter le catalogue" as UC_Browse
+    usecase "Rechercher / Filtrer des produits" as UC_Search
+
+    ' --- Fonctionnalités du Client ---
+    usecase "Gérer son panier" as UC_Cart
+    usecase "Laisser une évaluation (Note & Commentaire)" as UC_Review
+    usecase "Passer une commande" as UC_Checkout
+    usecase "Payer la commande" as UC_Pay
+    usecase "Consulter son historique de commandes" as UC_Order_History
+
+    ' --- Fonctionnalités spécifiques au Vendeur ---
+    usecase "Ajouter un produit au catalogue" as UC_Add_Product
+    usecase "Modifier / Mettre à jour ses produits" as UC_Update_Product
+    usecase "Suivre ses stocks (Quantités)" as UC_Stock
+    usecase "Consulter le tableau de bord vendeur" as UC_Seller_Dashboard
+
+    ' --- Fonctionnalités spécifiques à l'Administrateur ---
+    usecase "Consulter les statistiques globales (Dashboard Admin)" as UC_Admin_Stats
+    usecase "Gérer les utilisateurs (Bannir / Désactiver)" as UC_Manage_Users
+    usecase "Gérer les catégories globales du site" as UC_Manage_Categories
+
+    ' --- Inclusions & Extensions ---
+    UC_Checkout .> UC_Pay : <<include>>
+    UC_Add_Product .> UC_Manage_Categories : <<use>>
+}
+
+' --- Connexions Acteurs -> Cas d'utilisation ---
+
+' Visiteur
+Visiteur --> UC_Register
+Visiteur --> UC_Login
+Visiteur --> UC_Browse
+Visiteur --> UC_Search
+
+' Client Connecté
+Client --> UC_Profile
+Client --> UC_Cart
+Client --> UC_Review
+Client --> UC_Checkout
+Client --> UC_Order_History
+
+' Vendeur
+Vendeur --> UC_Add_Product
+Vendeur --> UC_Update_Product
+Vendeur --> UC_Stock
+Vendeur --> UC_Seller_Dashboard
+
+' Administrateur
+Admin --> UC_Admin_Stats
+Admin --> UC_Manage_Users
+Admin --> UC_Manage_Categories
+
+@enduml

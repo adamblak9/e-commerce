@@ -1,0 +1,78 @@
+@startuml
+title Diagramme d'Architecture Logique (Modèle 3-Tier)
+
+skinparam componentStyle rectangle
+skinparam databaseStyle wide
+
+package "Présentation (Couche Web / Contrôleurs)" {
+    [AuthServlet]
+    [CartServlet]
+    [ProductServlet]
+    [OrderServlet]
+}
+
+package "Métier (Couche Service / Logique de Transaction)" {
+    [AuthService]
+    [CartService]
+    [ProductService]
+    [OrderService]
+    [PaymentService]
+    [ProfileService]
+    [AdminService]
+}
+
+package "Accès aux Données (Couche Persistance / JPA)" {
+    [UserRepository]
+    [CartRepository]
+    [ProductRepository]
+    [OrderRepository]
+    [PaymentRepository]
+    [ReviewRepository]
+
+    package "Modèle Domaine (Entities)" {
+        [User]
+        [Cart]
+        [Product]
+        [Order]
+        [Payment]
+    }
+}
+
+database "Base de Données Relationnelle" as DB
+
+' ---- Relations d'utilisation et de flux ----
+[AuthServlet] --> [AuthService]
+[CartServlet] --> [CartService]
+[ProductServlet] --> [ProductService]
+[OrderServlet] --> [OrderService]
+
+[AuthService] --> [UserRepository]
+[ProfileService] --> [UserRepository]
+[AdminService] --> [UserRepository]
+[AdminService] --> [ProductRepository]
+[AdminService] --> [OrderRepository]
+
+[CartService] --> [CartRepository]
+[CartService] --> [ProductRepository]
+[ProductService] --> [ProductRepository]
+[ProductService] --> [ReviewRepository]
+[ProductService] --> [UserRepository]
+
+[OrderService] --> [OrderRepository]
+[PaymentService] --> [PaymentRepository]
+[PaymentService] --> [OrderRepository]
+
+' Accès des Repositories vers les entités et la DB
+[UserRepository] ..> [User]
+[CartRepository] ..> [Cart]
+[ProductRepository] ..> [Product]
+[OrderRepository] ..> [Order]
+[PaymentRepository] ..> [Payment]
+
+[UserRepository] --> DB
+[CartRepository] --> DB
+[ProductRepository] --> DB
+[OrderRepository] --> DB
+[PaymentRepository] --> DB
+
+@enduml

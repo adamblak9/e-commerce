@@ -1,0 +1,39 @@
+@startuml Sequence_Product_Creation
+autonumber
+
+actor "Vendeur (Seller)" as Seller
+box "Backend" #GhostWhite
+    participant "JwtFilter" as Filter
+    participant "ProductServlet" as Servlet
+    participant "ProductService" as Service
+    participant "ProductRepository" as Repo
+end box
+database "SQL Server" as DB
+
+Seller -> Filter : POST /api/products {name, price, stockQuantity, ...}
+activate Filter
+note over Filter : Extrait les claims du JWT\n(userId, role)
+Filter -> Servlet : forward request
+deactivate Filter
+activate Servlet
+
+Servlet -> Servlet : extractClaims(req)
+note over Servlet : Vérifie si le rôle est 'SELLER' ou 'ADMIN'\nSinon -> HTTP 403 Forbidden
+
+Servlet -> Service : createProduct(name, description, price, stock, category, img, sellerId)
+activate Service
+
+Service -> Repo : save(product)
+activate Repo
+Repo -> DB : em.persist(product)
+DB --> Repo : Success
+Repo --> Service : Saved Product Entity
+deactivate Repo
+
+Service --> Servlet : Map (Product Payload)
+deactivate Service
+
+Servlet --> Seller : HTTP 201 Created (JSON Product)
+deactivate Servlet
+
+@enduml

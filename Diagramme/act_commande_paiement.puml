@@ -1,0 +1,29 @@
+@startuml
+title Diagramme d'activité : Commande et Paiement
+
+start
+:Valider le panier;
+:Saisir l'adresse de livraison;
+:Appeler createOrder (Statut: PENDING);
+:Afficher l'interface de paiement;
+:Sélectionner CARD, PAYPAL ou CASH_ON_DELIVERY;
+
+if (Traitement du paiement réussi ?) then (oui)
+  :Enregistrer l'entité Payment (Status: COMPLETED);
+  :Passer la commande à CONFIRMED;
+
+  partition "Mise à jour des stocks (Transactionnelle)" {
+    :Récupérer tous les OrderItems;
+    repeat
+      :UPDATE Product SET stockQuantity = stockQuantity - Qty;
+    repeat while (Encore des articles ?)
+  }
+
+  :Vider le panier (Cart.getItems().clear());
+  :Afficher confirmation de commande;
+else (non)
+  :Afficher erreur de paiement;
+  :Laisser la commande en statut PENDING;
+endif
+stop
+@enduml

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
+
+    <persistence-unit name="ecommercePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- Register all entities here -->
+        <class>com.ecommerce.entity.User</class>
+        <class>com.ecommerce.entity.Product</class>
+        <class>com.ecommerce.entity.Cart</class>
+        <class>com.ecommerce.entity.CartItem</class>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:sqlserver://commerce-sqlserver-1:1433;databaseName=ecommerce_db;encrypt=false;trustServerCertificate=true"/>
+            <property name="jakarta.persistence.jdbc.user"     value="sa"/>
+            <property name="jakarta.persistence.jdbc.password" value="Admin123!"/>
+            <property name="jakarta.persistence.jdbc.driver"   value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+
+            <property name="hibernate.hbm2ddl.auto"  value="update"/>
+            <property name="hibernate.show_sql"       value="true"/>
+            <property name="hibernate.format_sql"     value="true"/>
+            <property name="hibernate.archive.autodetection" value="class"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>

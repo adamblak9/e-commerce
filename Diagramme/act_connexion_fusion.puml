@@ -1,0 +1,27 @@
+@startuml
+title Diagramme d'activité : Connexion et Fusion du Panier
+
+start
+:Saisir Email et Mot de passe;
+:Vérifier l'existence de l'utilisateur;
+if (Utilisateur trouvé ?) then (oui)
+  :Vérifier le hachage BCrypt du mot de passe;
+  if (Mot de passe correct ?) then (oui)
+    :Générer le JWT (userId, email, role);
+    :Créer le Cookie HTTP-Only "jwt";
+    :Récupérer les articles du panier local (Guest);
+    if (Panier local contient des articles ?) then (oui)
+      :Appeler mergeGuestCart;
+      :Identifier le panier en base de données;
+      :Ajouter ou mettre à jour les quantités;
+    else (non)
+    endif
+    :Renvoyer réponse succès (200 OK);
+  else (non)
+    :Erreur Identifiants (401);
+  endif
+else (non)
+  :Erreur Identifiants (401);
+endif
+stop
+@enduml

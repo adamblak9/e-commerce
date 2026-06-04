@@ -1,0 +1,44 @@
+@startuml Diagramme_De_Structure
+skinparam componentStyle uml2
+
+title Diagramme de Structure et Dépendances Techniques
+
+package "Controllers (Servlets)" {
+    [AuthServlet / LoginServlet / SignupServlet] as AuthControllers
+    [ProductServlet] as ProductCtrl
+    [CartServlet] as CartCtrl
+    [OrderServlet / PaymentServlet] as OrderCtrl
+}
+
+package "Business Services" {
+    [AuthService] as AuthService
+    [ProductService] as ProductService
+    [CartService] as CartService
+    [OrderService] as OrderService
+    [PaymentService] as PaymentService
+}
+
+package "Data Access (Repositories)" {
+    [UserRepository] as UserRepo
+    [ProductRepository] as ProductRepo
+    [CartRepository] as CartRepo
+    [OrderRepository] as OrderRepo
+    [PaymentRepository] as PaymentRepo
+}
+
+' Tracé des liaisons
+AuthControllers --> AuthService
+ProductCtrl --> ProductService
+CartCtrl --> CartService
+OrderCtrl --> OrderService
+OrderCtrl --> PaymentService
+
+AuthService --> UserRepo
+ProductService --> ProductRepo
+CartService --> CartRepo
+CartService --> ProductRepo
+OrderService --> OrderRepo
+PaymentService --> PaymentRepo
+PaymentService --> OrderRepo
+
+@enduml

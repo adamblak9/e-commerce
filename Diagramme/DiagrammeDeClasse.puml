@@ -1,0 +1,179 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title Diagramme de Classes - E-Commerce API (Liaisons Enumérations)
+
+package "com.ecommerce.entity" {
+
+    class User {
+        - id: Long
+        - username: String
+        - email: String
+        - passwordHash: String
+        - firstName: String
+        - lastName: String
+        - phoneNumber: String
+        - role: Role
+        - status: Status
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        - lastLoginAt: LocalDateTime
+        + getFullName(): String
+        + isActive(): boolean
+    }
+
+    enum Role {
+        CUSTOMER
+        ADMIN
+        SELLER
+    }
+
+    enum Status {
+        ACTIVE
+        INACTIVE
+        BANNED
+    }
+
+    class Product {
+        - id: Long
+        - name: String
+        - description: String
+        - price: BigDecimal
+        - stockQuantity: int
+        - category: String
+        - imageUrl: String
+        - sellerId: Long
+        - status: ProductStatus
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        + isAvailable(): boolean
+    }
+
+    enum ProductStatus {
+        ACTIVE
+        INACTIVE
+        OUT_OF_STOCK
+    }
+
+    class Category {
+        - id: Long
+        - name: String
+        - description: String
+        - slug: String
+        - icon: String
+        - active: boolean
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+    }
+
+    class Cart {
+        - id: Long
+        - userId: Long
+        - items: List<CartItem>
+        - updatedAt: LocalDateTime
+        + addItem(CartItem): void
+        + removeItem(CartItem): void
+    }
+
+    class CartItem {
+        - id: Long
+        - cart: Cart
+        - productId: Long
+        - productName: String
+        - price: BigDecimal
+        - quantity: int
+        - imageUrl: String
+        - userId: Long
+        - addedAt: LocalDateTime
+    }
+
+    class Order {
+        - id: Long
+        - userId: Long
+        - status: OrderStatus
+        - totalAmount: BigDecimal
+        - shippingAddress: String
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        - deliveredAt: LocalDateTime
+    }
+
+    enum OrderStatus {
+        PENDING
+        CONFIRMED
+        SHIPPED
+        DELIVERED
+        CANCELLED
+    }
+
+    class OrderItem {
+        - id: Long
+        - orderId: Long
+        - productId: Long
+        - productName: String
+        - quantity: Integer
+        - price: BigDecimal
+        - imageUrl: String
+        + getSubtotal(): BigDecimal
+    }
+
+    class Payment {
+        - id: Long
+        - orderId: Long
+        - userId: Long
+        - paymentMethod: PaymentMethod
+        - status: PaymentStatus
+        - amount: BigDecimal
+        - transactionId: String
+        - cardLast4: String
+        - cardHolderName: String
+        - paypalEmail: String
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+    }
+
+    enum PaymentMethod {
+        CARD
+        PAYPAL
+        CASH_ON_DELIVERY
+    }
+
+    enum PaymentStatus {
+        PENDING
+        COMPLETED
+        FAILED
+        REFUNDED
+    }
+
+    class Review {
+        - id: Long
+        - productId: Long
+        - userId: Long
+        - rating: Integer
+        - comment: String
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+        {static} + validateRating(int): void
+    }
+}
+
+' --- Liaisons Composition Énumérations (Appartenance) ---
+User +-- Role
+User +-- Status
+Product +-- ProductStatus
+Order +-- OrderStatus
+Payment +-- PaymentMethod
+Payment +-- PaymentStatus
+
+' --- Relations Techniques (JPA / Services) ---
+Cart "1" *-- "0..*" CartItem : contains
+Order "1" *-- "0..*" OrderItem : details
+Payment "0..1" -- "1" Order : pays for
+Review "0..*" -- "1" Product : concerns
+Review "0..*" -- "1" User : authored by
+Product "0..*" -- "1" User : sold by
+Product "0..*" -- "1" Category : belongs to
+CartItem "0..*" -- "1" Product : references
+
+@enduml

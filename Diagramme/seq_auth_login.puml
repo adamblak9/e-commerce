@@ -1,0 +1,46 @@
+@startuml Sequence_Auth_Login
+autonumber
+skinparam BoxPadding 10
+
+actor "Client / Navigateur" as Client
+box "Application Backend" #GhostWhite
+    participant "LoginServlet" as Servlet
+    participant "AuthService" as Service
+    participant "UserRepository" as Repo
+    participant "PasswordUtil" as Crypto
+    participant "JwtUtil" as JWT
+end box
+database "SQL Server" as DB
+
+Client -> Servlet : POST /api/auth/login {email, password}
+activate Servlet
+
+Servlet -> Service : login(email, password)
+activate Service
+
+Service -> Repo : findByEmail(email)
+activate Repo
+Repo -> DB : SELECT u FROM User u ...
+DB --> Repo : User record
+Repo --> Service : Optional<User>
+deactivate Repo
+
+Service -> Crypto : verify(password, hash)
+activate Crypto
+Crypto --> Service : true
+deactivate Crypto
+
+Service -> Repo : update(user) [met à jour lastLoginAt]
+Service -> JWT : generate(userId, email, role)
+activate JWT
+JWT --> Service : tokenString
+deactivate JWT
+
+Service --> Servlet : Map (Response Payload with User data)
+deactivate Service
+
+Servlet -> Servlet : Créer Cookie HTTP-Only "jwt"
+Client <-- Servlet : HTTP 200 OK (JSON + Cookie)
+deactivate Servlet
+
+@enduml

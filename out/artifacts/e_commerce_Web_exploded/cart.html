@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="auth.js"></script>
+    <script src="cart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart — ShopEase</title>
+    <!-- Same fonts as login: Fraunces (serif) + DM Sans (sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg:         #ffffff;
+            --panel:      #f9f9f8;
+            --border:     #e8e8e6;
+            --border2:    #d4d4d0;
+            --accent:     #1a6ef5;
+            --accent2:    #4488ff;
+            --accentL:    rgba(26,110,245,0.08);
+            --text:       #111110;
+            --text2:      #3a3a38;
+            --muted:      #888886;
+            --shadow-sm:  0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ----- Navigation (mirrors login page) ----- */
+        nav {
+            padding: 0 2rem;
+            height: 70px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-brand {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-brand span {
+            color: var(--accent);
+        }
+
+        /* ----- Main layout (two columns) ----- */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 2rem;
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.2rem;
+        }
+
+        /* ----- Cart items (light card) ----- */
+        .cart-items {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            gap: 1rem;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-img {
+            width: 80px;
+            height: 90px;
+            background: var(--panel);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border2);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .remove-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--muted);
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .remove-link:hover {
+            color: var(--error, #e53535);
+        }
+
+        /* Quantity controls (clean, minimal) */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+        }
+
+        .qty-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 28px;
+            color: var(--text2);
+            transition: color 0.2s;
+        }
+
+        .qty-btn:hover {
+            color: var(--accent);
+        }
+
+        .qty-controls span {
+            font-weight: 500;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* ----- Summary Card (light, consistent with login form) ----- */
+        .summary-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+            color: var(--text2);
+        }
+
+        .total {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 1rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .total span:last-child {
+            color: var(--accent);
+        }
+
+        /* Address input (matches login fields) */
+        .address-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            margin: 1rem 0 0.5rem;
+            outline: none;
+            transition: border 0.15s, box-shadow 0.15s;
+        }
+
+        .address-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accentL);
+            background: var(--bg);
+        }
+
+        /* Checkout button (same as login button) */
+        .checkout-btn {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 1rem;
+        }
+
+        .checkout-btn:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+
+        .checkout-btn:active {
+            transform: scale(0.99);
+        }
+
+        .checkout-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty state (light theme) */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: var(--panel);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .empty-state h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .empty-state a:hover {
+            text-decoration: underline;
+        }
+
+        /* Shipping hint */
+        .shipping-note {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+            text-align: right;
+        }
+
+        /* Responsive */
+        @media (max-width: 780px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 1rem;
+                margin: 1.5rem auto;
+            }
+
+            nav {
+                padding: 0 1rem;
+            }
+
+            .summary-card {
+                position: static;
+            }
+
+            .item {
+                flex-wrap: wrap;
+            }
+
+            .qty-controls {
+                margin-left: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="store.html" class="nav-brand">Shop<span>Ease</span></a>
+</nav>
+
+<div class="container" id="cartContainer">
+    <!-- Dynamic content will be injected by JS -->
+</div>
+
+<script>
+    // ── Cart page — uses Cart API (cart.js) ──────────────────────────
+    let cartData = { items: [], total: 0, count: 0 };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+    }
+
+    async function loadAndRender() {
+        cartData = await Cart.load();
+        render();
+    }
+
+    function render() {
+        const container = document.getElementById('cartContainer');
+        const items = cartData.items || [];
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column: 1/-1;">
+                    <h2>Your shopping bag is empty</h2>
+                    <p style="margin: 0.5rem 0 1rem; color: var(--muted);">Add some products from the store — they're waiting for you.</p>
+                    <a href="store.html">Continue Shopping →</a>
+                </div>`;
+            return;
+        }
+
+        const subtotal = parseFloat(cartData.total) || 0;
+
+        const itemsHtml = items.map((item, idx) => `
+            <div class="item" data-index="${idx}">
+                <div class="item-img">${item.imageUrl ? `<img src="${item.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"/>` : '🛍️'}</div>
+                <div class="item-details">
+                    <div class="item-name">${escapeHtml(item.productName)}</div>
+                    <div class="item-price">$${parseFloat(item.price).toFixed(2)}</div>
+                    <span class="remove-link" onclick="removeItem(${item.productId})">Remove item</span>
+                </div>
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateQty(${item.productId}, ${item.quantity - 1})">−</button>
+                    <span>${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateQty(${item.productId}, ${item.quantity + 1})">+</button>
+                </div>
+            </div>`).join('');
+
+        container.innerHTML = `
+            <div>
+                <h1>Shopping Bag</h1>
+                <div class="cart-items">${itemsHtml}</div>
+            </div>
+            <div class="summary-card">
+                <h2>Order Summary</h2>
+                <div class="row"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+                <div class="row"><span>Shipping</span><span class="shipping-note">Calculated at next step</span></div>
+                <div class="row total"><span>Total</span><span>$${subtotal.toFixed(2)}</span></div>
+                <input type="text" id="address" class="address-input" placeholder="Shipping address (required)" autocomplete="street-address"/>
+                <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">Checkout Now</button>
+            </div>`;
+    }
+
+    window.updateQty = async function(productId, newQty) {
+        cartData = await Cart.updateQty(productId, newQty);
+        render();
+    };
+
+    window.removeItem = async function(productId) {
+        cartData = await Cart.remove(productId);
+        render();
+    };
+
+    window.checkout = async function() {
+        const address = (document.getElementById('address')?.value || '').trim();
+        if (!address) { alert('Please enter a shipping address'); return; }
+
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) { window.location.href = 'login.html'; return; }
+
+        const items = cartData.items || [];
+        if (!items.length) { alert('Your cart is empty.'); return; }
+
+        const totalAmount = parseFloat(cartData.total) || 0;
+        const payload = {
+            items: items.map(i => ({
+                productId: i.productId,
+                quantity:  i.quantity,
+                price:     i.price,
+                name:      i.productName
+            })),
+            total:   totalAmount,
+            address: address
+        };
+
+        const btn = document.getElementById('checkoutBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                await Cart.clear(); // clear DB cart after order placed
+                window.location.href = `payment.html?orderId=${data.orderId}&amount=${totalAmount.toFixed(2)}`;
+            } else {
+                alert(data.error || data.message || 'Checkout failed');
+                if (btn) { btn.disabled = false; btn.textContent = 'Checkout Now'; }
+            }
+        } catch (err) {
+            alert('Cannot connect to server.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Checkout Now'; }
+        }
+    };
+
+    loadAndRender();
+</script>
+</body>
+</html>

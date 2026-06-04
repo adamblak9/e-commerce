@@ -1,0 +1,55 @@
+@startuml Sequence_Order_Creation_And_Payment
+autonumber
+
+actor "Client / Frontend" as Client
+box "Backend" #GhostWhite
+    participant "OrderServlet" as OrderServlet
+    participant "OrderService" as OrderService
+    participant "PaymentServlet" as PayServlet
+    participant "PaymentService" as PayService
+    participant "OrderRepository" as OrderRepo
+end box
+database "SQL Server" as DB
+
+== Étape 1 : Création de la Commande ==
+Client -> OrderServlet : POST /api/orders {items, total, address}
+activate OrderServlet
+OrderServlet -> OrderService : createOrder(userId, items, total, address)
+activate OrderService
+OrderService -> OrderRepo : save(order, items)
+activate OrderRepo
+OrderRepo -> DB : Em.persist(order & items) dans une Transaction
+DB --> OrderRepo : Success
+OrderRepo --> OrderService : Saved Order Entity (contient ID)
+deactivate OrderRepo
+OrderService --> OrderServlet : Order Object
+deactivate OrderService
+OrderServlet --> Client : HTTP 201 Created {success: true, orderId: X}
+deactivate OrderServlet
+
+== Étape 2 : Traitement du Paiement ==
+Client -> PayServlet : POST /payment {paymentMethod, orderId, amount, ...}
+activate PayServlet
+
+alt Méthode = CARD
+    PayServlet -> PayService : processCardPayment(...)
+    activate PayService
+    note over PayService : Validation de base de la carte\nMasquage des numéros (last4)
+    PayService -> DB : Sauvegarde du paiement (Status COMPLETED)
+    PayService -> OrderRepo : Mettre à jour statut commande -> CONFIRMED
+    PayService --> PayServlet : Payment Saved
+    deactivate PayService
+end
+
+PayServlet -> OrderService : decrementStockForOrder(orderId)
+activate OrderService
+note over OrderService : Exécute UPDATE Product p\nSET stockQuantity = stockQuantity - :qty\nWHERE p.id = :pid
+OrderService -> DB : JPQL Bulk Update execution
+DB --> OrderService : Rows affected
+OrderService --> PayServlet : Stock decremented
+deactivate OrderService
+
+PayServlet --> Client : HTTP 200 OK {success: true, transactionId, message}
+deactivate PayServlet
+
+@enduml

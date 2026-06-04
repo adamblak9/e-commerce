@@ -1,0 +1,30 @@
+@startuml
+title Diagramme d'activité : Ajout au Panier
+
+start
+:Cliquer sur "Ajouter au panier";
+:Vérifier le JWT via JwtFilter;
+if (Utilisateur Authentifié ?) then (oui)
+  :Récupérer les informations du produit;
+  :Vérifier ProductStatus et stockQuantity;
+  if (isAvailable() == true ?) then (oui)
+    :Chercher si l'article existe déjà dans le panier;
+    if (Article déjà présent ?) then (oui)
+      :Calculer nouvelle quantité (Actuelle + Ajout);
+      if (Nouvelle quantité > Stock disponible ?) then (oui)
+        :Plafonner la quantité au maximum du stock;
+      else (non)
+      endif
+    else (non)
+      :Créer un nouveau CartItem;
+    endif
+    :Persister les changements via CartRepository;
+    :Retourner le panier mis à jour;
+  else (non)
+    :Afficher "Produit non disponible ou stock épuisé";
+  endif
+else (non)
+  :Stocker temporairement dans le LocalStorage (Guest Cart);
+endif
+stop
+@enduml

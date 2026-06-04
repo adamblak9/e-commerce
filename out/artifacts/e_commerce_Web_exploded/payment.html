@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="auth.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — ShopEase</title>
+  <!-- Same fonts as login: Fraunces (serif) + DM Sans (sans) -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg:         #ffffff;
+      --panel:      #f9f9f8;
+      --border:     #e8e8e6;
+      --border2:    #d4d4d0;
+      --accent:     #1a6ef5;
+      --accent2:    #4488ff;
+      --accentL:    rgba(26,110,245,0.08);
+      --text:       #111110;
+      --text2:      #3a3a38;
+      --muted:      #888886;
+      --error:      #e53535;
+      --success:    #18a058;
+      --shadow-sm:  0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+      --radius:     20px;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ----- Navigation (mirrors login) ----- */
+    nav {
+      padding: 0 2rem;
+      height: 70px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-brand {
+      font-family: 'Fraunces', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-step {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--panel);
+      padding: 0.3rem 0.9rem;
+      border-radius: 30px;
+      border: 1px solid var(--border);
+    }
+
+    /* ----- Main layout ----- */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ----- Order summary card (light theme) ----- */
+    .order-summary {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.8rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .order-summary-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      background: var(--panel);
+    }
+    .order-summary-header span {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .order-id-badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 0.2rem 0.8rem;
+    }
+    .order-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .item-emoji {
+      width: 48px;
+      height: 52px;
+      background: var(--panel);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      border: 1px solid var(--border2);
+    }
+    .item-info { flex: 1; }
+    .item-name {
+      font-family: 'Fraunces', serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+    .item-qty {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .item-price {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .order-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .total-amount {
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+
+    /* ----- Payment method tabs (light, subtle) ----- */
+    .method-tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .method-tab {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.8rem 0.5rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .method-tab svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      fill: none;
+    }
+    .method-tab:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .method-tab.active {
+      border-color: var(--accent);
+      background: var(--accentL);
+      color: var(--accent);
+    }
+
+    /* ----- Payment panel (clean white card) ----- */
+    .payment-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .panel-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .panel-header h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+    .panel-header p {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .forms-area {
+      padding: 1.5rem;
+    }
+    .payment-form {
+      display: none;
+    }
+    .payment-form.active {
+      display: block;
+      animation: fadeSlide 0.25s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form fields (same as login) */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-row.single {
+      grid-template-columns: 1fr;
+    }
+    .field {
+      margin-bottom: 1rem;
+    }
+    .field label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .field input {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accentL);
+      background: var(--bg);
+    }
+    .field input::placeholder {
+      color: var(--border2);
+    }
+
+    /* Card visual (light-theme friendly) */
+    .card-visual {
+      background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+      border-radius: 16px;
+      padding: 1.2rem 1.2rem;
+      margin-bottom: 1.2rem;
+      position: relative;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8), 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .card-chip {
+      width: 36px;
+      height: 28px;
+      background: linear-gradient(135deg, #c8b17a, #e0c78c);
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .card-number-display {
+      font-family: 'DM Sans', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+      font-weight: 500;
+    }
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+    }
+    .card-info-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .card-info-value {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .card-logo {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+    .card-logo svg {
+      width: 42px;
+    }
+
+    /* PayPal & COD sections */
+    .paypal-header {
+      text-align: center;
+      margin-bottom: 1.2rem;
+    }
+    .paypal-header svg {
+      width: 100px;
+      margin-bottom: 0.5rem;
+    }
+    .paypal-header p {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .cod-info {
+      text-align: center;
+      padding: 0.5rem 0 0.8rem;
+    }
+    .cod-icon {
+      width: 54px;
+      height: 54px;
+      background: var(--panel);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.8rem;
+      border: 1px solid var(--border);
+    }
+    .cod-icon svg {
+      width: 26px;
+      stroke: var(--accent);
+    }
+    .cod-info h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.3rem;
+    }
+    .cod-info p {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Buttons */
+    .btn-pay {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-pay:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+    }
+    .btn-pay:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-pay .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+      color: var(--error);
+      font-size: 0.7rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    /* Sidebar (light card) */
+    .sidebar {
+      position: sticky;
+      top: 90px;
+    }
+    .summary-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .summary-card h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .s-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+      color: var(--text2);
+    }
+    .s-name {
+      flex: 1;
+      margin-right: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .s-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+    }
+    .s-total span:last-child {
+      color: var(--accent);
+    }
+
+    .secure-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 1rem;
+    }
+    .secure-badge svg {
+      width: 13px;
+      stroke: var(--accent);
+    }
+
+    /* Success overlay (light theme) */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .success-overlay.show {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .success-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 2rem 2rem;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+    }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--panel);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      border: 1px solid var(--success);
+    }
+    .success-icon svg {
+      width: 32px;
+      stroke: var(--success);
+    }
+    .success-card h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .txn-badge {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.4rem 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin: 1rem 0;
+      display: inline-block;
+    }
+    .btn-close {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 0.7rem 1.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-close:hover {
+      background: var(--accent2);
+    }
+
+    @media (max-width: 780px) {
+      .container {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+      }
+      .sidebar {
+        position: static;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      nav {
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="store.html" class="nav-brand">Shop<span>Ease</span></a>
+  <span class="nav-step">Step 2 of 2 — Payment</span>
+</nav>
+
+<div class="container">
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <h1>Secure Checkout</h1>
+
+    <div class="order-summary">
+      <div class="order-summary-header">
+        <span>Your Order</span>
+        <span class="order-id-badge" id="orderIdBadge">Order #—</span>
+      </div>
+      <div id="itemList">
+        <div class="order-item" style="color:var(--muted); justify-content:center;">
+          Loading items...
+        </div>
+      </div>
+      <div class="order-total-row">
+        <span>Total</span>
+        <span class="total-amount" id="displayAmount">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Payment method tabs -->
+    <div class="method-tabs">
+      <button class="method-tab active" data-method="CARD" onclick="switchMethod('CARD')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="1" y="4" width="22" height="16" rx="3"/><path d="M1 10h22"/>
+        </svg>
+        Card
+      </button>
+      <button class="method-tab" data-method="PAYPAL" onclick="switchMethod('PAYPAL')">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.554 9.488c.121.563.106 1.246-.04 2.051-.582 2.978-2.477 4.466-5.683 4.466h-.442a.666.666 0 0 0-.444.166.72.72 0 0 0-.239.427l-.041.189-.553 3.479-.021.151a.706.706 0 0 1-.247.426.666.666 0 0 1-.427.157H8.874a.395.395 0 0 1-.331-.14.395.395 0 0 1-.09-.323c.037-.243.087-.492.148-.768l.451-2.875a.72.72 0 0 1 .239-.427.666.666 0 0 1 .444-.166h.682c2.239 0 3.956-.617 5.15-1.851.998-1.032 1.636-2.491 1.915-4.377.062-.405.094-.791.094-1.155a5.4 5.4 0 0 0-.048-.715c1.105.553 1.65 1.57 1.926 2.866Z"/>
+          <path d="M16.951 6.605c-.213-1.366-1.097-2.283-2.654-2.752a7.916 7.916 0 0 0-2.265-.29H6.91a.786.786 0 0 0-.777.664L4.22 16.81a.474.474 0 0 0 .108.389.474.474 0 0 0 .37.163h2.794l.701-4.432-.022.141a.786.786 0 0 1 .777-.664h1.617c3.178 0 5.665-1.29 6.393-5.021.022-.112.04-.221.057-.329a4.892 4.892 0 0 0-.064-2.452Z"/>
+        </svg>
+        PayPal
+      </button>
+      <button class="method-tab" data-method="CASH_ON_DELIVERY" onclick="switchMethod('CASH_ON_DELIVERY')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Cash on Delivery
+      </button>
+    </div>
+
+    <div class="payment-panel">
+      <div class="panel-header">
+        <h2>Payment Details</h2>
+        <p>Your transaction is secured with TLS encryption</p>
+      </div>
+      <div class="forms-area">
+
+        <!-- CARD FORM -->
+        <div class="payment-form active" id="form-CARD">
+          <div class="card-visual">
+            <div class="card-chip"></div>
+            <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+            <div class="card-bottom">
+              <div>
+                <div class="card-info-label">Cardholder</div>
+                <div class="card-info-value" id="cardHolderDisplay">YOUR NAME</div>
+              </div>
+              <div>
+                <div class="card-info-label">Expires</div>
+                <div class="card-info-value" id="cardExpiryDisplay">MM/YY</div>
+              </div>
+            </div>
+            <div class="card-logo">
+              <svg viewBox="0 0 52 32" fill="none">
+                <circle cx="20" cy="16" r="13" fill="#eb001b" opacity=".9"/>
+                <circle cx="32" cy="16" r="13" fill="#f79e1b" opacity=".9"/>
+                <path d="M26 6.8a13 13 0 0 1 0 18.4A13 13 0 0 1 26 6.8z" fill="#ff5f00" opacity=".7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>Card Number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19"
+                     oninput="formatCard(this)" autocomplete="cc-number"/>
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>Cardholder Name</label>
+              <input type="text" id="cardHolder" placeholder="JOHN DOE"
+                     oninput="updateCardHolder(this)" autocomplete="cc-name"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Expiry Date</label>
+              <input type="text" id="expiry" placeholder="MM/YY" maxlength="5"
+                     oninput="formatExpiry(this)" autocomplete="cc-exp"/>
+            </div>
+            <div class="field"><label>CVV</label>
+              <input type="password" id="cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc"/>
+            </div>
+          </div>
+          <div class="error-msg" id="cardError"></div>
+          <button class="btn-pay" id="btnCard" onclick="submitPayment('CARD')">
+            <span class="btn-text" id="btnCardText">Pay $0.00</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <!-- PAYPAL FORM -->
+        <div class="payment-form" id="form-PAYPAL">
+          <div class="paypal-header">
+            <svg viewBox="0 0 120 40" fill="none">
+              <text y="28" font-size="24" font-weight="700" font-family="Arial" fill="#009cde">Pay</text>
+              <text x="44" y="28" font-size="24" font-weight="700" font-family="Arial" fill="#003087">Pal</text>
+            </svg>
+            <p>Enter the email address linked to your PayPal account.</p>
+          </div>
+          <div class="field"><label>PayPal Email</label>
+            <input type="email" id="paypalEmail" placeholder="email@example.com" autocomplete="email"/>
+          </div>
+          <div class="error-msg" id="paypalError"></div>
+          <button class="btn-pay" id="btnPaypal" onclick="submitPayment('PAYPAL')">
+            <span class="btn-text">Continue with PayPal</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <!-- CASH ON DELIVERY FORM -->
+        <div class="payment-form" id="form-CASH_ON_DELIVERY">
+          <div class="cod-info">
+            <div class="cod-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <h3>Cash on Delivery</h3>
+            <p>You'll pay in cash when your order arrives. No charges now.</p>
+          </div>
+          <div class="error-msg" id="codError"></div>
+          <button class="btn-pay" id="btnCod" onclick="submitPayment('CASH_ON_DELIVERY')">
+            <span class="btn-text">Confirm Order</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+
+        <div class="secure-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          100% Secure Payment — SSL / TLS Encrypted
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar">
+    <div class="summary-card">
+      <h2>Order Summary</h2>
+      <div id="sidebarItems"></div>
+      <div class="s-total">
+        <span>Total</span>
+        <span id="sidebarTotal">$0.00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h2>Order Confirmed!</h2>
+    <p id="successMsg">Your payment was processed successfully.</p>
+    <div class="txn-badge" id="successTxnId"></div>
+    <p style="font-size:0.75rem; color:var(--muted);">A confirmation email will be sent shortly.</p>
+    <button class="btn-close" onclick="window.location.href='store.html'" style="margin-top: 1rem;">Back to Store</button>
+  </div>
+</div>
+
+<script>
+  /* ========== ORIGINAL LOGIC (fully preserved) ========== */
+  const params   = new URLSearchParams(window.location.search);
+  const ORDER_ID = parseInt(params.get('orderId'))   || 0;
+  const AMOUNT   = parseFloat(params.get('amount') || '0').toFixed(2);
+
+  document.getElementById('displayAmount').textContent = '$' + AMOUNT;
+  document.getElementById('sidebarTotal').textContent  = '$' + AMOUNT;
+  document.getElementById('btnCardText').textContent   = `Pay $${AMOUNT}`;
+  document.getElementById('orderIdBadge').textContent  = `Order #${ORDER_ID}`;
+
+  function renderFromCart(cart) {
+    if (!cart || cart.length === 0) return false;
+    document.getElementById('itemList').innerHTML = cart.map(item => `
+      <div class="order-item">
+        <div class="item-emoji">🛍️</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.name || 'Product #' + item.id)}</div>
+          <div class="item-qty">Qty: ${item.qty}</div>
+        </div>
+        <div class="item-price">$${(item.price * item.qty).toFixed(2)}</div>
+      </div>
+    `).join('');
+    document.getElementById('sidebarItems').innerHTML = cart.map(item => `
+      <div class="s-row">
+        <span class="s-name">${esc(item.name || 'Product #' + item.id)} × ${item.qty}</span>
+        <span>$${(item.price * item.qty).toFixed(2)}</span>
+      </div>
+    `).join('');
+    return true;
+  }
+
+  async function enrichFromApi() {
+    const token = localStorage.getItem('token');
+    if (!token || !ORDER_ID) return;
+    try {
+      const res = await fetch(`/api/orders/details?orderId=${ORDER_ID}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.items || data.items.length === 0) return;
+      document.getElementById('itemList').innerHTML = data.items.map(item => `
+        <div class="order-item">
+          <div class="item-emoji">🛍️</div>
+          <div class="item-info">
+            <div class="item-name">${esc(item.productName || 'Product #' + item.productId)}</div>
+            <div class="item-qty">Qty: ${item.quantity}</div>
+          </div>
+          <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+        </div>
+      `).join('');
+      document.getElementById('sidebarItems').innerHTML = data.items.map(item => `
+        <div class="s-row">
+          <span class="s-name">${esc(item.productName || 'Product #' + item.productId)} × ${item.quantity}</span>
+          <span>$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+    } catch (_) { /* keep localStorage fallback */ }
+  }
+
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if (!renderFromCart(cart)) {
+    document.getElementById('itemList').innerHTML = '<div class="order-item" style="color:var(--muted);">No items found.</div>';
+  }
+  enrichFromApi();
+
+  function switchMethod(m) {
+    document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.payment-form').forEach(f => f.classList.remove('active'));
+    document.querySelector(`.method-tab[data-method="${m}"]`).classList.add('active');
+    document.getElementById(`form-${m}`).classList.add('active');
+  }
+
+  function formatCard(el) {
+    let v = el.value.replace(/\D/g,'').substring(0,16);
+    el.value = v.replace(/(.{4})/g,'$1 ').trim();
+    document.getElementById('cardNumberDisplay').textContent = v.padEnd(16,'•').replace(/(.{4})/g,'$1 ').trim();
+  }
+  function updateCardHolder(el) {
+    document.getElementById('cardHolderDisplay').textContent = el.value.toUpperCase() || 'YOUR NAME';
+  }
+  function formatExpiry(el) {
+    let v = el.value.replace(/\D/g,'').substring(0,4);
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    el.value = v;
+    document.getElementById('cardExpiryDisplay').textContent = v || 'MM/YY';
+  }
+
+  async function submitPayment(method) {
+    const btnMap = { CARD:'btnCard', PAYPAL:'btnPaypal', CASH_ON_DELIVERY:'btnCod' };
+    const errMap = { CARD:'cardError', PAYPAL:'paypalError', CASH_ON_DELIVERY:'codError' };
+    const btn  = document.getElementById(btnMap[method]);
+    const errEl= document.getElementById(errMap[method]);
+
+    if (errEl) errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.spinner').style.display = 'block';
+
+    const body = new URLSearchParams();
+    body.append('paymentMethod', method);
+    body.append('orderId', ORDER_ID);
+    body.append('amount', AMOUNT);
+    if (method === 'CARD') {
+      body.append('cardNumber', document.getElementById('cardNumber').value);
+      body.append('cardHolder', document.getElementById('cardHolder').value);
+      body.append('expiry', document.getElementById('expiry').value);
+      body.append('cvv', document.getElementById('cvv').value);
+    } else if (method === 'PAYPAL') {
+      body.append('paypalEmail', document.getElementById('paypalEmail').value);
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res   = await fetch('/payment', {
+        method: 'POST',
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+        body
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.removeItem('cart');
+        const msgs = {
+          CARD: 'Your card has been charged successfully.',
+          PAYPAL: 'PayPal payment accepted. Order confirmed.',
+          CASH_ON_DELIVERY: 'Order registered. Please pay in cash upon delivery.'
+        };
+        document.getElementById('successMsg').textContent = msgs[method];
+        document.getElementById('successTxnId').textContent = data.transactionId || `TXN-${Date.now()}`;
+        document.getElementById('successOverlay').classList.add('show');
+      } else {
+        if (errEl) { errEl.textContent = data.message || 'Payment failed. Please try again.'; errEl.style.display = 'block'; }
+      }
+    } catch (e) {
+      if (errEl) { errEl.textContent = 'Network error. Please check your connection.'; errEl.style.display = 'block'; }
+    } finally {
+      btn.disabled = false;
+      btn.querySelector('.btn-text').style.display = '';
+      btn.querySelector('.spinner').style.display = 'none';
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

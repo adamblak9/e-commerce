@@ -1,0 +1,41 @@
+@startuml Architecture_Globale
+skinparam componentStyle uml2
+skinparam databaseBackgroundColor #LightCyan
+skinparam rectangleBackgroundColor #GhostWhite
+
+title Architecture Globale - Application E-Commerce (Java EE & JPA)
+
+actor "Client / Front-end" as Client
+
+rectangle "Couche Présentation & Sécurité" {
+    component "JwtFilter" as Filter #LightPink
+    component "RoleGuard" as Guard #LightPink
+    component "BaseServlet" as BaseServlet
+    component "Servlets\n(Auth, Product, Cart, Order...)" as Servlets #LightBlue
+}
+
+rectangle "Couche Métier (Business)" {
+    component "Services\n(AuthService, ProductService, CartService...)" as Services #LightGreen
+    component "OrderStatusUpdater\n(Background Task)" as Scheduler #LightYellow
+}
+
+rectangle "Couche Accès aux Données (DAO)" {
+    component "Repositories\n(UserRepository, ProductRepository...)" as Repos #Thistle
+    component "JPAUtil & EntityManager" as JPA
+}
+
+database "SQL Server\n(ecommerce_db)" as DB
+
+' Relations
+Client --> Filter : HTTP Requests (API / JSON)
+Filter --> Servlets : Forward
+Servlets .right.> Guard : Utilise pour vérification rôle
+
+Servlets --> Services : Appels méthodes métier
+Scheduler --> Services : Tâches de fond (Livraison auto)
+
+Services --> Repos : Requêtes et persistence
+Repos --> JPA : Demande EntityManager
+JPA --> DB : Connexion JDBC (SQL Server)
+
+@enduml

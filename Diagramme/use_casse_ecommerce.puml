@@ -1,0 +1,57 @@
+@startuml Use_Case_Ecommerce
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Visiteur non connecté" as Guest
+actor "Client (Customer)" as Customer
+actor "Vendeur (Seller)" as Seller
+actor "Administrateur (Admin)" as Admin
+
+Customer --|> Guest
+Seller --|> Guest
+
+rectangle "Système E-Commerce" {
+    ' Cas d'utilisation publics / Visiteur
+    usecase "S'inscrire / Se connecter" as UC_Auth
+    usecase "Consulter les produits" as UC_Browse
+    usecase "Gérer un panier invité" as UC_GuestCart
+
+    ' Cas d'utilisation Client connecté
+    usecase "Gérer son profil" as UC_Profile
+    usecase "Passer et Payer une Commande" as UC_Checkout
+    usecase "Laisser un Avis / Commentaire" as UC_Review
+    usecase "Consulter ses anciennes commandes" as UC_CustOrders
+
+    ' Cas d'utilisation Vendeur
+    usecase "Gérer ses produits (CRUD)" as UC_ManageProducts
+    usecase "Consulter ses statistiques vendeur" as UC_SellerStats
+    usecase "Suivre les commandes de ses articles" as UC_SellerOrders
+
+    ' Cas d'utilisation Admin
+    usecase "Consulter le Dashboard global" as UC_AdminDashboard
+    usecase "Gérer les utilisateurs (Bloquer, Rôles)" as UC_AdminUsers
+    usecase "Gérer le catalogue des catégories" as UC_AdminCategories
+}
+
+' Associations Visiteur
+Guest --> UC_Auth
+Guest --> UC_Browse
+Guest --> UC_GuestCart
+
+' Associations Client
+Customer --> UC_Profile
+Customer --> UC_Checkout
+Customer --> UC_Review
+Customer --> UC_CustOrders
+
+' Associations Vendeur
+Seller --> UC_ManageProducts
+Seller --> UC_SellerStats
+Seller --> UC_SellerOrders
+
+' Associations Admin
+Admin --> UC_AdminDashboard
+Admin --> UC_AdminUsers
+Admin --> UC_AdminCategories
+
+@enduml

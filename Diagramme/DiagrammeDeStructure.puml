@@ -1,0 +1,75 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "com.ecommerce.servlet" {
+    class CartServlet
+    class ProductServlet
+    class OrderServlet
+    class AuthServlet
+}
+
+package "com.ecommerce.service" {
+    class AdminService
+    class AuthService
+    class CartService
+    class CategoryService
+    class OrderService
+    class Orderstatusupdater
+    class PaymentService
+    class ProductService
+    class ProfileService
+    class ReviewService
+}
+
+package "com.ecommerce.repository" {
+    interface CartRepository
+    interface CategoryRepository
+    interface OrderRepository
+    interface PaymentRepository
+    interface ProductRepository
+    interface ReviewRepository
+    interface UserRepository
+}
+
+package "com.ecommerce.entity" {
+    class User
+    class Product
+    class Category
+    class Cart
+    class CartItem
+    class Order
+    class OrderItem
+    class Payment
+    class Review
+}
+
+' ---- Relations de dépendance entre les couches ----
+
+' Liens Servlets vers Services
+AuthServlet --> AuthService
+CartServlet --> CartService
+ProductServlet --> ProductService
+OrderServlet --> OrderService
+
+' Liens Services vers Repositories
+AuthService --> UserRepository
+ProfileService --> UserRepository
+CartService --> CartRepository
+CategoryService --> CategoryRepository
+ProductService --> ProductRepository
+ReviewService --> ReviewRepository
+PaymentService --> PaymentRepository
+OrderService --> OrderRepository
+Orderstatusupdater --> OrderRepository
+
+' Liens Repositories vers Entities
+CartRepository ..> Cart
+CategoryRepository ..> Category
+OrderRepository ..> Order
+PaymentRepository ..> Payment
+ProductRepository ..> Product
+ReviewRepository ..> Review
+UserRepository ..> User
+
+@enduml

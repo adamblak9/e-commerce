@@ -1,0 +1,21 @@
+@startuml
+title Diagramme d'activité : Création de Produit (Espace Vendeur)
+
+start
+:Accéder au Dashboard Vendeur;
+:Remplir le formulaire (Nom, Prix, Stock, Catégorie);
+if (Champs obligatoires saisis ?) then (oui)
+  :Vérifier le rôle via RoleGuard.require("SELLER", "ADMIN");
+  if (Autorisation accordée ?) then (oui)
+    :Récupérer le userId (devient sellerId);
+    :Appeler productService.createProduct;
+    :Sauvegarder en base de données;
+    :Renvoyer le JSON du produit (201 Created);
+  else (non)
+    :Retourner erreur 403 Forbidden;
+  endif
+else (non)
+  :Retourner erreur 400 (Champs requis manquants);
+endif
+stop
+@enduml

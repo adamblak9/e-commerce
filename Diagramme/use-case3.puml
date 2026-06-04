@@ -1,0 +1,76 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Visiteur" as Guest
+actor "Client" as Customer
+actor "Vendeur" as Seller
+actor "Administrateur" as Admin
+
+' Héritage d'acteurs
+Customer --|> Guest
+Seller --|> Guest
+Admin --|> Customer
+
+rectangle "Système E-Commerce" {
+
+  ' --- Cas d'utilisation de base (Guest) ---
+  (Consulter le catalogue) as UC_Browse
+  (Rechercher un produit) as UC_Search
+  (Gérer le panier local) as UC_GuestCart
+  (S'authentifier) as UC_Auth
+
+  ' --- Cas d'utilisation Client ---
+  (Passer une commande) as UC_Checkout
+  (Payer la commande) as UC_Pay
+  (Laisser un avis) as UC_Review
+  (Gérer son profil) as UC_Profile
+  (Consulter ses commandes) as UC_MyOrders
+
+  ' --- Cas d'utilisation Vendeur ---
+  (Gérer ses produits) as UC_ManageProd
+  (Consulter ses stats de vente) as UC_SellerStats
+
+  ' --- Cas d'utilisation Admin ---
+  (Gérer les catégories) as UC_AdminCat
+  (Gérer les utilisateurs) as UC_AdminUsers
+  (Modérer les avis) as UC_Moderate
+  (Accéder au dashboard global) as UC_Dashboard
+
+  ' --- Relations d'inclusion (Include) ---
+  UC_Checkout ..> UC_Pay : <<include>>
+  UC_Checkout ..> UC_Auth : <<include>>
+  UC_Review ..> UC_Auth : <<include>>
+  UC_ManageProd ..> UC_Auth : <<include>>
+
+  ' --- Relations d'extension (Extend) ---
+  (Appliquer un code promo) as UC_Promo
+  UC_Promo ..> UC_Checkout : <<extend>>
+
+  (Ajouter une image au produit) as UC_UploadImg
+  UC_UploadImg ..> UC_ManageProd : <<extend>>
+
+  (Signaler un avis) as UC_Report
+  UC_Report ..> UC_Review : <<extend>>
+}
+
+' Liaisons Acteurs -> Use Cases
+Guest --> UC_Browse
+Guest --> UC_Search
+Guest --> UC_GuestCart
+Guest --> UC_Auth
+
+Customer --> UC_Checkout
+Customer --> UC_Review
+Customer --> UC_Profile
+Customer --> UC_MyOrders
+
+Seller --> UC_ManageProd
+Seller --> UC_SellerStats
+
+Admin --> UC_AdminCat
+Admin --> UC_AdminUsers
+Admin --> UC_Dashboard
+Admin --> UC_Moderate
+
+@enduml

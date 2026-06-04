@@ -1,0 +1,44 @@
+@startuml Sequence_Profile_Update
+autonumber
+
+actor "Utilisateur" as UserActor
+box "Backend" #GhostWhite
+    participant "ProfileServlet" as Servlet
+    participant "ProfileService" as Service
+    participant "UserRepository" as Repo
+end box
+database "SQL Server" as DB
+
+UserActor -> Servlet : PUT /api/profile {firstName, lastName, username, email, phoneNumber}
+activate Servlet
+
+Servlet -> Service : updateInfo(userId, firstName, lastName, username, email, phone)
+activate Service
+
+note over Service : Validation du format de l'email
+
+Service -> Repo : existsByEmailAndIdNot(email, userId)
+activate Repo
+Repo --> Service : false (l'email n'est pas utilisé par un autre)
+deactivate Repo
+
+Service -> Repo : existsByUsernameAndIdNot(username, userId)
+activate Repo
+Repo --> Service : false (le pseudo est libre)
+deactivate Repo
+
+note over Service : Mise à jour des champs\nsur l'entité User managée
+
+Service -> Repo : update(user)
+activate Repo
+Repo -> DB : em.merge(user)
+DB --> Repo : Updated User Entity
+deactivate Repo
+
+Service --> Servlet : Map (Profile JSON)
+deactivate Service
+
+Servlet --> UserActor : HTTP 200 OK (JSON Updated Profile)
+deactivate Servlet
+
+@enduml
